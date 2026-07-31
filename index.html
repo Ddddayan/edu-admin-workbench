@@ -401,6 +401,28 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 
 <script>
 // ============================================================
+// 自动更新检测：桌面图标打开时自动同步最新版本
+// ============================================================
+(function autoUpdateCheck() {
+  // 从服务器读取版本号（no-store 绕过缓存，确保拿到最新值）
+  fetch('./version.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var serverVer = parseInt(data.version, 10) || 0;
+      try {
+        var localVer = parseInt(localStorage.getItem('edu_admin_ver') || '0', 10);
+        if (serverVer > localVer) {
+          localStorage.setItem('edu_admin_ver', String(serverVer));
+          // 跳转到带版本号的 URL：查询参数变化 → 强制绕过缓存加载最新版
+          if (location.search.indexOf('v=' + serverVer) === -1) {
+            location.replace('./?v=' + serverVer);
+          }
+        }
+      } catch(e) {}
+    })
+    .catch(function() { /* 无网络时静默，不影响本地使用 */ });
+})();
+// ============================================================
 // PWA Setup — 生成桌面图标 & 首次使用引导
 // ============================================================
 (function setupPWA() {
