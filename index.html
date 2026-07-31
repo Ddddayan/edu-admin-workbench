@@ -368,6 +368,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
   </div>
 </div>
 
+<!-- Backup Reminder Bar -->
+<div id="backupReminder" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1500;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:14px 20px;align-items:center;gap:14px;max-width:92%;flex-wrap:wrap;justify-content:center;animation:fadeIn 0.3s ease">
+  <span style="font-size:24px">📦</span>
+  <div style="flex:1;min-width:180px">
+    <div style="font-size:14px;font-weight:600;color:#111827" id="backupReminderText">您已 7 天未备份数据</div>
+    <div style="font-size:12px;color:#9CA3AF;margin-top:2px">建议每周备份一次，防止数据丢失</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-primary btn-sm" onclick="student.doBackup()">立即备份</button>
+    <button class="btn btn-outline btn-sm" onclick="student.dismissBackup()">下次再说</button>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // PWA Setup — 生成桌面图标 & 首次使用引导
@@ -940,7 +953,48 @@ var student = {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
+    // 记录本次备份日期
+    try { localStorage.setItem('edu_admin_last_backup', new Date().toISOString().split('T')[0]); } catch(e) {}
+    this.hideBackupReminder();
     showToast('导出成功，共 ' + students.length + ' 条记录');
+  },
+
+  // ---------- Backup Reminder ----------
+  checkBackupReminder: function() {
+    try {
+      var today = new Date().toISOString().split('T')[0];
+      var lastBackup = localStorage.getItem('edu_admin_last_backup');
+      var firstUse = localStorage.getItem('edu_admin_first_use');
+
+      // 首次使用：记录日期，暂不打扰
+      if (!firstUse) {
+        localStorage.setItem('edu_admin_first_use', today);
+        return;
+      }
+      // 从未备份过：从首次使用算起
+      var base = lastBackup || firstUse;
+      var diff = Math.floor((new Date(today) - new Date(base)) / (1000 * 60 * 60 * 24));
+      if (diff >= 7) {
+        var bar = document.getElementById('backupReminder');
+        document.getElementById('backupReminderText').textContent = '您已 ' + diff + ' 天未备份数据';
+        bar.style.display = 'flex';
+      }
+    } catch(e) {}
+  },
+
+  doBackup: function() {
+    this.exportData();
+  },
+
+  dismissBackup: function() {
+    // 推迟提醒：视为今天已处理，7 天后再提醒
+    try { localStorage.setItem('edu_admin_last_backup', new Date().toISOString().split('T')[0]); } catch(e) {}
+    this.hideBackupReminder();
+  },
+
+  hideBackupReminder: function() {
+    var bar = document.getElementById('backupReminder');
+    if (bar) bar.style.display = 'none';
   },
 
   importData: function() {
@@ -1205,6 +1259,8 @@ var batch = {
 // ============================================================
 student.renderList();
 batch.render();
+// 延迟检查备份提醒（等页面渲染完成后）
+setTimeout(function() { student.checkBackupReminder(); }, 1500);
 </script>
 </body>
 </html>
