@@ -116,8 +116,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .student-card .name { font-size: 16px; font-weight: 600; color: var(--gray-800); }
 .student-card .badge { font-size: 12px; padding: 2px 8px; border-radius: 12px; font-weight: 500; white-space: nowrap; }
 .badge-warning { background: #FEF3C7; color: #92400E; }
+.badge-orange { background: #FFEDD5; color: #C2410C; }
+.badge-red { background: #FEE2E2; color: #DC2626; }
 .badge-danger { background: #FEE2E2; color: #991B1B; }
 .badge-info { background: var(--primary-bg); color: var(--primary); }
+.btn-sort.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .student-card .remain-days { font-size: 28px; font-weight: 700; color: var(--primary); text-align: center; padding: 12px 0 4px; }
 .student-card .remain-label { font-size: 13px; color: var(--gray-500); text-align: center; }
 .student-card .expired-tag { color: var(--danger); font-size: 18px; font-weight: 700; text-align: center; padding: 8px 0; }
@@ -207,6 +210,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
             <div class="left">
               <span class="card-title" style="margin-bottom:0">学生档案</span>
               <input class="search-input" placeholder="搜索姓名/学校/教练..." id="studentSearch">
+              <span style="display:flex;gap:6px">
+                <button class="btn btn-outline btn-sm btn-sort" id="sortAscBtn" onclick="student.setSort('asc')">到期 ↑</button>
+                <button class="btn btn-outline btn-sm btn-sort" id="sortDescBtn" onclick="student.setSort('desc')">到期 ↓</button>
+              </span>
             </div>
             <div class="right">
               <button class="btn btn-outline btn-sm" onclick="student.showImportMenu()">📥 导入</button>
@@ -513,6 +520,7 @@ var student = {
   editingId: null,
   deletingId: null,
   detailViewId: null,
+  sortOrder: null, // null=默认, 'asc'=到期升序(紧急在前), 'desc'=到期降序
 
   // ---------- Modal ----------
   showAddModal: function(id) {
@@ -741,7 +749,7 @@ var student = {
       { label: '课程内容', value: s.courseContent || '-' },
       { label: '教练', value: s.coach || '-' },
       { label: '是否住宿', value: s.boarding || '否' },
-      { label: '剩余课时', value: remain > 0 ? remain + ' 天' : '已过期 ' + Math.abs(remain) + ' 天' }
+      { label: '剩余课时', value: '<span style="color:' + this.getRemainColor(remain) + ';font-weight:700">' + (remain > 0 ? remain + ' 天' : '已过期 ' + Math.abs(remain) + ' 天') + '</span>' }
     ];
     document.getElementById('detailGrid').innerHTML = items.map(function(it) {
       return '<div class="detail-item"><div class="label">' + it.label + '</div><div class="value">' + it.value + '</div></div>';
@@ -762,6 +770,28 @@ var student = {
   },
 
   // ---------- List ----------
+  // 根据剩余天数返回提示色：7天黄 / 3天橙 / 1天红 / 过期深红
+  getRemainColor: function(remain) {
+    if (remain <= 0) return '#DC2626';
+    if (remain <= 1) return '#DC2626';
+    if (remain <= 3) return '#EA580C';
+    if (remain <= 7) return '#D97706';
+    return 'var(--primary)';
+  },
+
+  setSort: function(order) {
+    if (this.sortOrder === order) {
+      this.sortOrder = null; // 再次点击取消排序
+    } else {
+      this.sortOrder = order;
+    }
+    var asc = document.getElementById('sortAscBtn');
+    var desc = document.getElementById('sortDescBtn');
+    if (asc) asc.classList.toggle('active', this.sortOrder === 'asc');
+    if (desc) desc.classList.toggle('active', this.sortOrder === 'desc');
+    this.renderList();
+  },
+
   renderList: function() {
     var searchVal = (document.getElementById('studentSearch').value || '').trim().toLowerCase();
     var students = DB.students;
@@ -770,6 +800,15 @@ var student = {
         return (s.name || '').toLowerCase().indexOf(searchVal) !== -1 ||
                (s.school || '').toLowerCase().indexOf(searchVal) !== -1 ||
                (s.coach || '').toLowerCase().indexOf(searchVal) !== -1;
+      });
+    }
+    // 按到期时间排序
+    if (this.sortOrder) {
+      var self = this;
+      students = students.slice().sort(function(a, b) {
+        var da = self.getRemainingDays(a);
+        var db = self.getRemainingDays(b);
+        return self.sortOrder === 'asc' ? da - db : db - da;
       });
     }
 
@@ -787,16 +826,27 @@ var student = {
     grid.innerHTML = students.map(function(s) {
       var remain = self.getRemainingDays(s);
       var effectiveDur = s.adjustedDuration || s.duration;
-      var badgeHtml = remain <= 0
-        ? '<span class="badge badge-danger">已过期</span>'
-        : (remain <= 5 ? '<span class="badge badge-warning">即将到期</span>' : '<span class="badge badge-info">' + remain + '天</span>');
+      // 分层提示：≤7天黄 / ≤3天橙 / ≤1天红 / 已过期深红
+      var badgeHtml = '';
+      if (remain <= 0) {
+        badgeHtml = '<span class="badge badge-danger">已过期</span>';
+      } else if (remain <= 1) {
+        badgeHtml = '<span class="badge badge-red">剩 ' + remain + ' 天</span>';
+      } else if (remain <= 3) {
+        badgeHtml = '<span class="badge badge-orange">剩 ' + remain + ' 天</span>';
+      } else if (remain <= 7) {
+        badgeHtml = '<span class="badge badge-warning">剩 ' + remain + ' 天</span>';
+      } else {
+        badgeHtml = '<span class="badge badge-info">' + remain + '天</span>';
+      }
+      var remainColor = self.getRemainColor(remain);
       var expiredHtml = remain <= 0 ? '<div class="expired-tag">已过期 ' + Math.abs(remain) + ' 天</div>' : '';
       var coachHtml = s.coach
         ? '<div style="text-align:center;font-size:12px;color:var(--gray-500);margin-top:4px">🏅 教练：' + s.coach + '</div>'
         : '';
       return '<div class="student-card" onclick="student.viewDetail(\'' + s.id + '\')">' +
         '<div class="card-header"><span class="name">' + s.name + '</span>' + badgeHtml + '</div>' +
-        '<div class="remain-days">' + (remain > 0 ? remain : 0) + '</div>' +
+        '<div class="remain-days" style="color:' + remainColor + '">' + (remain > 0 ? remain : 0) + '</div>' +
         '<div class="remain-label">剩余课时（天）</div>' + expiredHtml + coachHtml +
         '<div class="card-footer" onclick="event.stopPropagation()">' +
           '<button class="btn btn-outline btn-sm" onclick="student.adjustDays(\'' + s.id + '\', -1)"' + (effectiveDur <= 0 ? ' disabled' : '') + '>−</button>' +
