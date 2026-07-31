@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="教务工作台">
+<meta name="apple-mobile-web-app-title" content="超粤体育">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#4A6CF7">
+<meta name="theme-color" content="#E5332E">
 <link rel="manifest" href="data:application/json,{}" id="manifestPlaceholder">
-<title>教务管理工作台</title>
+<title>超粤体育课时系统</title>
 <style>
 :root {
-  --primary: #4A6CF7;
-  --primary-light: #6B8AFF;
-  --primary-bg: #EEF2FF;
+  --primary: #E5332E;
+  --primary-light: #FF5A55;
+  --primary-bg: #FFEAE8;
   --danger: #EF4444;
   --warning: #F59E0B;
   --success: #10B981;
@@ -37,7 +37,7 @@
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--gray-50); color: var(--gray-800); min-height: 100vh; overflow-x: hidden; }
 
 /* Header */
-.header { background: linear-gradient(135deg, #4A6CF7 0%, #3B5AD9 100%); color: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(74,108,247,0.3); position: sticky; top: 0; z-index: 100; }
+.header { background: linear-gradient(135deg, #E5332E 0%, #B8231F 100%); color: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(229,51,46,0.3); position: sticky; top: 0; z-index: 100; }
 .header h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; }
 .header h1:before { content: '📚'; }
 .header .date-display { font-size: 14px; opacity: 0.9; }
@@ -61,7 +61,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 /* Buttons */
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; transition: var(--transition); font-weight: 500; font-family: inherit; -webkit-tap-highlight-color: transparent; }
 .btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-light); box-shadow: 0 2px 8px rgba(74,108,247,0.3); }
+.btn-primary:hover { background: var(--primary-light); box-shadow: 0 2px 8px rgba(229,51,46,0.3); }
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-danger:hover { background: #DC2626; }
 .btn-success { background: var(--success); color: #fff; }
@@ -88,7 +88,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .form-group label { display: block; font-size: 14px; font-weight: 500; color: var(--gray-700); margin-bottom: 4px; }
 .form-group label .required { color: var(--danger); margin-left: 2px; }
 .form-group input, .form-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; transition: var(--transition); outline: none; background: #fff; font-family: inherit; -webkit-appearance: none; appearance: none; }
-.form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,108,247,0.12); }
+.form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229,51,46,0.12); }
 .form-group input:read-only { background: var(--gray-100); color: var(--gray-600); cursor: default; }
 .form-hint { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
 
@@ -104,7 +104,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .student-toolbar .left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .student-toolbar .right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .search-input { padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; width: 200px; outline: none; font-family: inherit; }
-.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,108,247,0.12); }
+.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229,51,46,0.12); }
 
 .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
 .student-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; cursor: pointer; transition: var(--transition); border: 1px solid var(--gray-200); position: relative; }
@@ -137,7 +137,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .batch-actions { display: none; padding: 16px; background: var(--primary-bg); border-radius: var(--radius); margin-top: 16px; align-items: center; gap: 12px; flex-wrap: wrap; }
 .batch-actions.show { display: flex; }
 .batch-actions input { width: 120px; padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; outline: none; font-family: inherit; }
-.batch-actions input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,108,247,0.12); }
+.batch-actions input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229,51,46,0.12); }
 
 .batch-table { width: 100%; border-collapse: collapse; }
 .batch-table th { text-align: left; padding: 10px 12px; font-size: 13px; font-weight: 600; color: var(--gray-500); border-bottom: 2px solid var(--gray-200); white-space: nowrap; }
@@ -184,7 +184,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 <body>
 
 <div class="header">
-  <h1>教务管理工作台</h1>
+  <h1>超粤体育课时系统</h1>
   <div class="date-display" id="dateDisplay"></div>
 </div>
 
@@ -375,13 +375,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 (function setupPWA() {
   // 1. 生成动态 Manifest（PWA必需）
   var manifest = {
-    name: '教务管理工作台',
-    short_name: '教务工作台',
-    description: '教务管理工作台 - 课程管理与学生档案',
+    name: '超粤体育课时系统',
+    short_name: '超粤体育',
+    description: '超粤体育课时系统 - 课程管理与学生档案',
     start_url: './',
     display: 'standalone',
-    background_color: '#4A6CF7',
-    theme_color: '#4A6CF7',
+    background_color: '#0F0F1F',
+    theme_color: '#E5332E',
     icons: [{ src: './icon.png', sizes: '192x192', type: 'image/png' }]
   };
   try {
@@ -408,25 +408,58 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     ctx.lineTo(0, r);
     ctx.quadraticCurveTo(0, 0, r, 0);
     ctx.closePath();
-    ctx.fillStyle = '#4A6CF7';
+    // 深空黑底色（匹配用户logo背景）
+    ctx.fillStyle = '#0F0F1F';
     ctx.fill();
-    // 内部白色区域
+
+    // === 上半部分：模拟"超粤体育"logo的图形 ===
+    ctx.save();
+    ctx.translate(0, -4);
+
+    // 1. 红色 C 形（开口向右的粗圆环）
+    ctx.lineWidth = 14;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#E5332E';
     ctx.beginPath();
-    ctx.roundRect(24, 24, 132, 132, 20);
-    ctx.fillStyle = '#FFFFFF';
+    ctx.arc(56, 62, 26, Math.PI * 0.30, Math.PI * 1.78, false);
+    ctx.stroke();
+
+    // 2. 灰色斜杠（从右上到左下穿过）
+    ctx.save();
+    ctx.translate(90, 62);
+    ctx.rotate(-Math.PI / 5.5);
+    ctx.fillStyle = '#A0A0A0';
+    ctx.beginPath();
+    ctx.moveTo(-6, -38);
+    ctx.lineTo(6, -38);
+    ctx.lineTo(8, 36);
+    ctx.lineTo(-8, 36);
+    ctx.closePath();
     ctx.fill();
-    // 书本图标
-    ctx.fillStyle = '#4A6CF7';
-    ctx.font = 'bold 72px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('📚', 90, 82);
-    // 底部文字
+    ctx.restore();
+
+    // 3. 红色小三角（C内右上方）
+    ctx.fillStyle = '#E5332E';
+    ctx.beginPath();
+    ctx.moveTo(56, 50);
+    ctx.lineTo(78, 50);
+    ctx.lineTo(67, 64);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+
+    // === 下半部分：白色"超粤体育"文字 ===
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 18px -apple-system, "PingFang SC", sans-serif';
+    ctx.font = 'bold 22px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('教务', 90, 158);
+    ctx.fillText('超粤体育', 90, 138);
+
+    ctx.fillStyle = '#A0A0A0';
+    ctx.font = '10px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillText('CHAOYUE SPORTS', 90, 158);
+
     var iconUrl = c.toDataURL('image/png');
     var link = document.createElement('link');
     link.rel = 'apple-touch-icon';
@@ -449,7 +482,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
         '<h3 style="font-size:18px;margin-bottom:8px;color:#111827">添加到桌面</h3>' +
         '<p style="font-size:14px;color:#6B7280;line-height:1.6;margin-bottom:16px">发送给朋友或给自己使用：<br>点击底部 <strong>分享按钮</strong> → <strong>添加到主屏幕</strong><br>即可像 App 一样使用，数据保存在本地</p>' +
         '<p style="font-size:12px;color:#9CA3AF;margin-bottom:16px">💡 下次从桌面打开本提示不再显示</p>' +
-        '<button onclick="closePwaHint()" style="background:#4A6CF7;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:15px;cursor:pointer;font-family:inherit">知道了</button>' +
+        '<button onclick="closePwaHint()" style="background:#E5332E;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:15px;cursor:pointer;font-family:inherit">知道了</button>' +
         '</div></div>';
       document.body.appendChild(hint);
       try { localStorage.setItem('edu_admin_pwa_hint', '1'); } catch(e) {}
@@ -1087,7 +1120,7 @@ var batch = {
         ? '<span class="status-tag" style="background:#FEE2E2;color:#991B1B">已过期</span>'
         : (remain <= 5
           ? '<span class="status-tag" style="background:#FEF3C7;color:#92400E">即将到期</span>'
-          : '<span class="status-tag" style="background:#EEF2FF;color:#4A6CF7">正常</span>');
+          : '<span class="status-tag" style="background:#FFEAE8;color:#E5332E">正常</span>');
       html += '<tr><td><input type="checkbox" ' + checked + ' value="' + s.id + '" onchange="batch.toggle(\'' + s.id + '\')"></td>' +
         '<td><strong>' + s.name + '</strong></td><td>' + (s.school || '-') + '</td>' +
         '<td>' + s.startDate + '</td><td>' + (s.adjustedDuration || s.duration) + ' 天</td><td>' + status + '</td></tr>';
