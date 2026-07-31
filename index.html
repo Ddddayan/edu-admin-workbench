@@ -236,13 +236,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     <div class="tab-content" id="tab-batch">
       <div class="card">
         <div class="card-title">批量课时管理</div>
+        <div class="student-toolbar">
+          <div class="left">
+            <input class="search-input" placeholder="搜索姓名/学校/教练..." id="batchSearch">
+          </div>
+        </div>
         <div class="batch-toolbar">
           <label><input type="checkbox" id="selectAll" onchange="batch.toggleAll()"> 全选</label>
           <span style="color:var(--gray-500);font-size:14px" id="selectedCount">已选 0 人</span>
         </div>
         <div id="batchListContainer"></div>
         <div class="batch-actions" id="batchActions">
-          <span style="font-size:14px;font-weight:500">批量消课：</span>
+          <span style="font-size:14px;font-weight:500">批量加课：</span>
+          <input type="number" min="1" id="batchAddInput" placeholder="加课数量">
+          <button class="btn btn-success" onclick="batch.confirmAdd()">确认加课</button>
+          <span style="font-size:14px;font-weight:500;margin-left:12px">批量消课：</span>
           <input type="number" min="1" id="batchDeductInput" placeholder="消课数量">
           <button class="btn btn-danger" onclick="batch.confirmDeduct()">确认消课</button>
         </div>
@@ -535,10 +543,19 @@ var student = {
         document.getElementById('f_startDate').value = s.startDate || '';
         document.getElementById('f_duration').value = s.duration || '';
         document.getElementById('f_courseContent').value = s.courseContent || '';
-        if (s.coach && DB.coaches.indexOf(s.coach) === -1) {
-          DB.coaches.push(s.coach);
-          DB.coaches = DB.coaches;
-          this._populateCoachOptions();
+        // 编辑时若教练不在选项列表中，动态添加一个选项仅用于显示（不写入教练库）
+        if (s.coach) {
+          var sel = document.getElementById('f_coach');
+          var exists = false;
+          for (var oi = 0; oi < sel.options.length; oi++) {
+            if (sel.options[oi].value === s.coach) { exists = true; break; }
+          }
+          if (!exists) {
+            var opt = document.createElement('option');
+            opt.value = s.coach;
+            opt.textContent = s.coach;
+            sel.appendChild(opt);
+          }
         }
         document.getElementById('f_coach').value = s.coach || '';
         document.getElementById('f_boarding').value = s.boarding || '否';
@@ -821,8 +838,12 @@ var student = {
   _renderCustomOptions: function() {
     var list = document.getElementById('customOptionsList');
     var self = this;
+    var isCoach = this.customOptionsType === 'coach';
     list.innerHTML = this._getOptions().map(function(o, i) {
-      if (i === 0) return '<div class="custom-option-item"><span>' + o + '</span><span style="color:var(--gray-400);font-size:12px">（默认，不可删除）</span></div>';
+      // 教练选项全部可删除；课程内容保留第一个"统招"不可删
+      if (i === 0 && !isCoach) {
+        return '<div class="custom-option-item"><span>' + o + '</span><span style="color:var(--gray-400);font-size:12px">（默认，不可删除）</span></div>';
+      }
       return '<div class="custom-option-item"><span>' + o + '</span><button class="del-btn" onclick="student.deleteCustomOption(' + i + ')">✕</button></div>';
     }).join('');
   },
@@ -842,7 +863,8 @@ var student = {
   },
 
   deleteCustomOption: function(idx) {
-    if (idx === 0) { showToast('默认选项不可删除', 'warning'); return; }
+    // 仅课程内容的第一个默认选项不可删除；教练选项均可删除
+    if (this.customOptionsType === 'course' && idx === 0) { showToast('默认选项不可删除', 'warning'); return; }
     var options = this._getOptions();
     options.splice(idx, 1);
     this._setOptions(options);
@@ -1078,20 +1100,40 @@ document.getElementById('newCustomOption').addEventListener('keydown', function(
 var batch = {
   selected: new Set(),
 
-  render: function() {
+  // 获取当前搜索过滤后的可见学生
+  getVisibleStudents: function() {
+    var searchVal = (document.getElementById('batchSearch').value || '').trim().toLowerCase();
     var students = DB.students;
+    if (searchVal) {
+      students = students.filter(function(s) {
+        return (s.name || '').toLowerCase().indexOf(searchVal) !== -1 ||
+               (s.school || '').toLowerCase().indexOf(searchVal) !== -1 ||
+               (s.coach || '').toLowerCase().indexOf(searchVal) !== -1;
+      });
+    }
+    return students;
+  },
+
+  render: function() {
+    var students = this.getVisibleStudents();
     var container = document.getElementById('batchListContainer');
     var actions = document.getElementById('batchActions');
     var countLabel = document.getElementById('selectedCount');
 
-    if (students.length === 0) {
+    if (DB.students.length === 0) {
       container.innerHTML = '<div class="empty-state">暂无学生数据</div>';
       actions.classList.remove('show');
       return;
     }
 
+    if (students.length === 0) {
+      container.innerHTML = '<div class="empty-state">未找到匹配的学生</div>';
+      actions.classList.remove('show');
+      return;
+    }
+
     var self = this;
-    var html = '<table class="batch-table"><thead><tr><th style="width:40px"></th><th>姓名</th><th>学校</th><th>开始时间</th><th>当前课时</th><th>状态</th></tr></thead><tbody>';
+    var html = '<table class="batch-table"><thead><tr><th style="width:40px"></th><th>姓名</th><th>学校</th><th>教练</th><th>开始时间</th><th>当前课时</th><th>状态</th></tr></thead><tbody>';
 
     students.forEach(function(s) {
       var remain = student.getRemainingDays(s);
@@ -1103,7 +1145,7 @@ var batch = {
           : '<span class="status-tag" style="background:#FFEAE8;color:#E5332E">正常</span>');
       html += '<tr><td><input type="checkbox" ' + checked + ' value="' + s.id + '" onchange="batch.toggle(\'' + s.id + '\')"></td>' +
         '<td><strong>' + s.name + '</strong></td><td>' + (s.school || '-') + '</td>' +
-        '<td>' + s.startDate + '</td><td>' + (s.adjustedDuration || s.duration) + ' 天</td><td>' + status + '</td></tr>';
+        '<td>' + (s.coach || '-') + '</td><td>' + s.startDate + '</td><td>' + (s.adjustedDuration || s.duration) + ' 天</td><td>' + status + '</td></tr>';
     });
 
     html += '</tbody></table>';
@@ -1120,20 +1162,63 @@ var batch = {
 
   toggle: function(id) {
     if (this.selected.has(id)) { this.selected.delete(id); } else { this.selected.add(id); }
-    document.getElementById('selectAll').checked = this.selected.size === DB.students.length && DB.students.length > 0;
+    document.getElementById('selectAll').checked = this.selected.size === this.getVisibleStudents().length && this.getVisibleStudents().length > 0;
     this.render();
   },
 
   toggleAll: function() {
     var checked = document.getElementById('selectAll').checked;
     if (checked) {
-      DB.students.forEach(function(s) { this.selected.add(s.id); }.bind(this));
+      this.getVisibleStudents().forEach(function(s) { this.selected.add(s.id); }.bind(this));
     } else {
       this.selected.clear();
     }
     this.render();
   },
 
+  // ---------- 批量加课 ----------
+  confirmAdd: function() {
+    var count = parseInt(document.getElementById('batchAddInput').value);
+    if (!count || count < 1) { showToast('请输入有效的加课数量', 'error'); return; }
+    if (this.selected.size === 0) { showToast('请先选择学生', 'error'); return; }
+
+    var students = DB.students.filter(function(s) { return this.selected.has(s.id); }.bind(this));
+    document.getElementById('confirmBody').innerHTML =
+      '<p style="margin-bottom:8px">将统一增加 <strong>' + count + '</strong> 课时，共影响 <strong>' + students.length + '</strong> 名学生：</p>' +
+      '<div class="confirm-list">' +
+      students.map(function(s) {
+        var cur = s.adjustedDuration || s.duration;
+        return '<div class="item">• ' + s.name + '（当前：' + cur + ' 天 → ' + (cur + count) + ' 天）</div>';
+      }).join('') + '</div>';
+
+    document.getElementById('confirmTitle').textContent = '确认批量加课';
+    document.getElementById('confirmBtn').onclick = function() { batch.doAdd(count); };
+    document.getElementById('confirmModal').classList.add('show');
+  },
+
+  doAdd: function(count) {
+    var students = DB.students;
+    students.forEach(function(s) {
+      if (this.selected.has(s.id)) {
+        var current = s.adjustedDuration || s.duration;
+        var newDur = current + count;
+        s.adjustedDuration = newDur;
+        var sd = new Date(s.startDate);
+        sd.setDate(sd.getDate() + newDur);
+        s.endDate = sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0');
+      }
+    }.bind(this));
+    DB.students = students;
+    this.selected.clear();
+    document.getElementById('selectAll').checked = false;
+    document.getElementById('batchAddInput').value = '';
+    document.getElementById('confirmModal').classList.remove('show');
+    this.render();
+    student.renderList();
+    showToast('批量加课完成，共增加 ' + count + ' 课时');
+  },
+
+  // ---------- 批量消课 ----------
   confirmDeduct: function() {
     var count = parseInt(document.getElementById('batchDeductInput').value);
     if (!count || count < 1) { showToast('请输入有效的消课数量', 'error'); return; }
@@ -1179,6 +1264,11 @@ var batch = {
     document.getElementById('confirmModal').classList.remove('show');
   }
 };
+
+// Wire up batch search input
+document.getElementById('batchSearch').addEventListener('input', function() {
+  batch.render();
+});
 
 // ============================================================
 // Init
