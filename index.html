@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="教务工作台">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4A6CF7">
+<link rel="manifest" href="data:application/json,{}" id="manifestPlaceholder">
+<title>教务管理工作台</title>
+<style>
+:root {
+  --primary: #4A6CF7;
+  --primary-light: #6B8AFF;
+  --primary-bg: #EEF2FF;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --success: #10B981;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.1);
+  --transition: all 0.2s ease;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--gray-50); color: var(--gray-800); min-height: 100vh; overflow-x: hidden; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #4A6CF7 0%, #3B5AD9 100%); color: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(74,108,247,0.3); position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; }
+.header h1:before { content: '📚'; }
+.header .date-display { font-size: 14px; opacity: 0.9; }
+
+/* Layout */
+.app-container { display: flex; min-height: calc(100vh - 60px); }
+.sidebar { width: 200px; background: #fff; border-right: 1px solid var(--gray-200); padding: 20px 0; flex-shrink: 0; }
+.nav-item { padding: 14px 24px; cursor: pointer; display: flex; align-items: center; gap: 10px; color: var(--gray-600); font-size: 15px; transition: var(--transition); border-left: 3px solid transparent; user-select: none; -webkit-tap-highlight-color: transparent; }
+.nav-item:hover { background: var(--primary-bg); color: var(--primary); }
+.nav-item.active { background: var(--primary-bg); color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+.nav-item .icon { font-size: 18px; }
+.main-content { flex: 1; padding: 24px; overflow-y: auto; }
+.tab-content { display: none; animation: fadeIn 0.25s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+/* Cards */
+.card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+.card-title { font-size: 16px; font-weight: 600; color: var(--gray-800); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; transition: var(--transition); font-weight: 500; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-light); box-shadow: 0 2px 8px rgba(74,108,247,0.3); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #DC2626; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #059669; }
+.btn-warning { background: var(--warning); color: #fff; }
+.btn-warning:hover { background: #D97706; }
+.btn-outline { background: transparent; border: 1px solid var(--gray-300); color: var(--gray-600); }
+.btn-outline:hover { background: var(--gray-100); border-color: var(--gray-400); }
+.btn-sm { padding: 4px 10px; font-size: 13px; }
+.btn-xs { padding: 2px 8px; font-size: 12px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 12px; box-shadow: var(--shadow-lg); width: 90%; max-width: 520px; max-height: 85vh; overflow-y: auto; padding: 28px; animation: fadeIn 0.2s ease; }
+.modal h3 { font-size: 18px; margin-bottom: 20px; color: var(--gray-800); }
+.modal-close { float: right; background: none; border: none; font-size: 22px; color: var(--gray-400); cursor: pointer; padding: 0 4px; line-height: 1; }
+.modal-close:hover { color: var(--gray-600); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 14px; font-weight: 500; color: var(--gray-700); margin-bottom: 4px; }
+.form-group label .required { color: var(--danger); margin-left: 2px; }
+.form-group input, .form-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; transition: var(--transition); outline: none; background: #fff; font-family: inherit; -webkit-appearance: none; appearance: none; }
+.form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,108,247,0.12); }
+.form-group input:read-only { background: var(--gray-100); color: var(--gray-600); cursor: default; }
+.form-hint { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+/* Toast */
+.toast { position: fixed; top: 80px; right: 24px; z-index: 2000; padding: 12px 20px; border-radius: 8px; color: #fff; font-size: 14px; box-shadow: var(--shadow-lg); animation: slideIn 0.3s ease; max-width: 360px; pointer-events: none; }
+.toast-success { background: var(--success); }
+.toast-error { background: var(--danger); }
+.toast-warning { background: var(--warning); }
+@keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+
+/* Students */
+.student-toolbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+.student-toolbar .left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.student-toolbar .right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.search-input { padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; width: 200px; outline: none; font-family: inherit; }
+.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,108,247,0.12); }
+
+.student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.student-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; cursor: pointer; transition: var(--transition); border: 1px solid var(--gray-200); position: relative; }
+.student-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--primary-light); }
+.student-card .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.student-card .name { font-size: 16px; font-weight: 600; color: var(--gray-800); }
+.student-card .badge { font-size: 12px; padding: 2px 8px; border-radius: 12px; font-weight: 500; white-space: nowrap; }
+.badge-warning { background: #FEF3C7; color: #92400E; }
+.badge-danger { background: #FEE2E2; color: #991B1B; }
+.badge-info { background: var(--primary-bg); color: var(--primary); }
+.student-card .remain-days { font-size: 28px; font-weight: 700; color: var(--primary); text-align: center; padding: 12px 0 4px; }
+.student-card .remain-label { font-size: 13px; color: var(--gray-500); text-align: center; }
+.student-card .expired-tag { color: var(--danger); font-size: 18px; font-weight: 700; text-align: center; padding: 8px 0; }
+.student-card .card-footer { display: flex; justify-content: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--gray-100); }
+.student-card .card-footer .btn { width: 36px; height: 36px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; }
+
+/* Detail Page */
+.detail-page { display: none; }
+.detail-page.show { display: block; animation: fadeIn 0.25s ease; }
+.detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.detail-item { padding: 12px 16px; background: var(--gray-50); border-radius: 8px; }
+.detail-item .label { font-size: 13px; color: var(--gray-500); margin-bottom: 4px; }
+.detail-item .value { font-size: 16px; font-weight: 500; color: var(--gray-800); }
+
+/* Batch */
+.batch-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.batch-toolbar label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; user-select: none; }
+.batch-toolbar input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+.batch-actions { display: none; padding: 16px; background: var(--primary-bg); border-radius: var(--radius); margin-top: 16px; align-items: center; gap: 12px; flex-wrap: wrap; }
+.batch-actions.show { display: flex; }
+.batch-actions input { width: 120px; padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; outline: none; font-family: inherit; }
+.batch-actions input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,108,247,0.12); }
+
+.batch-table { width: 100%; border-collapse: collapse; }
+.batch-table th { text-align: left; padding: 10px 12px; font-size: 13px; font-weight: 600; color: var(--gray-500); border-bottom: 2px solid var(--gray-200); white-space: nowrap; }
+.batch-table td { padding: 10px 12px; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
+.batch-table tr:hover { background: var(--gray-50); }
+.batch-table input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+.batch-table .status-tag { font-size: 12px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); font-size: 15px; }
+
+.custom-options-list { max-height: 240px; overflow-y: auto; }
+.custom-option-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--gray-100); }
+.custom-option-item:last-child { border-bottom: none; }
+.custom-option-item .del-btn { color: var(--danger); cursor: pointer; font-size: 14px; background: none; border: none; padding: 2px 6px; border-radius: 4px; }
+.custom-option-item .del-btn:hover { background: #FEE2E2; }
+
+.confirm-list { max-height: 200px; overflow-y: auto; margin: 12px 0; padding: 12px; background: var(--gray-50); border-radius: 8px; }
+.confirm-list .item { padding: 4px 0; font-size: 14px; }
+
+/* File input hidden */
+.file-input-hidden { display: none; }
+
+@media (max-width: 768px) {
+  .sidebar { width: 56px; }
+  .sidebar .nav-item { padding: 14px 0; justify-content: center; }
+  .sidebar .nav-item span:not(.icon) { display: none; }
+  .main-content { padding: 16px; }
+  .student-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .detail-grid { grid-template-columns: 1fr; }
+  .header { padding: 12px 16px; }
+  .header h1 { font-size: 16px; }
+  .search-input { width: 140px; }
+  .batch-table th:nth-child(3), .batch-table td:nth-child(3),
+  .batch-table th:nth-child(4), .batch-table td:nth-child(4) { display: none; }
+  .student-toolbar .right { width: 100%; }
+  .student-toolbar .right .btn { flex: 1; justify-content: center; }
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>教务管理工作台</h1>
+  <div class="date-display" id="dateDisplay"></div>
+</div>
+
+<div class="app-container">
+  <nav class="sidebar">
+    <div class="nav-item active" data-tab="students"><span class="icon">👤</span><span>档案管理</span></div>
+    <div class="nav-item" data-tab="batch"><span class="icon">⚡</span><span>批量课时</span></div>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- MODULE 2 -->
+    <div class="tab-content active" id="tab-students">
+      <div class="card">
+        <div id="studentListView">
+          <div class="student-toolbar">
+            <div class="left">
+              <span class="card-title" style="margin-bottom:0">学生档案</span>
+              <input class="search-input" placeholder="搜索姓名/学校/教练..." id="studentSearch">
+            </div>
+            <div class="right">
+              <button class="btn btn-outline btn-sm" onclick="student.showImportMenu()">📥 导入</button>
+              <button class="btn btn-outline btn-sm" onclick="student.exportData()">📤 导出</button>
+              <button class="btn btn-primary btn-sm" onclick="student.showAddModal()">＋ 添加</button>
+            </div>
+          </div>
+          <input type="file" id="importFileInput" class="file-input-hidden" accept=".csv">
+          <div class="student-grid" id="studentGrid"></div>
+          <div class="empty-state" id="studentEmpty" style="display:none">暂无学生档案，点击右上角"添加"按钮创建</div>
+        </div>
+        <div class="detail-page" id="studentDetailView">
+          <div class="detail-header">
+            <button class="btn btn-outline btn-sm" onclick="student.backToList()">‹ 返回列表</button>
+            <span style="font-size:18px;font-weight:600" id="detailTitle"></span>
+            <span style="margin-left:auto;display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm" onclick="student.editFromDetail()">✏️ 编辑</button>
+              <button class="btn btn-danger btn-sm" onclick="student.confirmDelete()">🗑 删除</button>
+            </span>
+          </div>
+          <div class="detail-grid" id="detailGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 3 -->
+    <div class="tab-content" id="tab-batch">
+      <div class="card">
+        <div class="card-title">批量课时管理</div>
+        <div class="batch-toolbar">
+          <label><input type="checkbox" id="selectAll" onchange="batch.toggleAll()"> 全选</label>
+          <span style="color:var(--gray-500);font-size:14px" id="selectedCount">已选 0 人</span>
+        </div>
+        <div id="batchListContainer"></div>
+        <div class="batch-actions" id="batchActions">
+          <span style="font-size:14px;font-weight:500">批量消课：</span>
+          <input type="number" min="1" id="batchDeductInput" placeholder="消课数量">
+          <button class="btn btn-danger" onclick="batch.confirmDeduct()">确认消课</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-overlay" id="studentModal">
+  <div class="modal">
+    <button class="modal-close" onclick="student.closeModal()">&times;</button>
+    <h3 id="studentModalTitle">添加学生</h3>
+    <div id="studentFormFields">
+      <div class="form-group">
+        <label>姓名 <span class="required">*</span></label>
+        <input type="text" id="f_name" placeholder="请输入学生姓名">
+      </div>
+      <div class="form-group">
+        <label>学校</label>
+        <input type="text" id="f_school" placeholder="选填">
+      </div>
+      <div class="form-group">
+        <label>电话</label>
+        <input type="text" id="f_phone" placeholder="选填">
+      </div>
+      <div class="form-group">
+        <label>课程开始时间 <span class="required">*</span></label>
+        <input type="date" id="f_startDate" onchange="student.updateEndDate()">
+      </div>
+      <div class="form-group">
+        <label>课程时长（天） <span class="required">*</span></label>
+        <input type="number" id="f_duration" min="1" placeholder="请输入天数" oninput="student.updateEndDate()">
+      </div>
+      <div class="form-group">
+        <label>到期时间</label>
+        <input type="text" id="f_endDate" placeholder="自动计算" readonly>
+        <div class="form-hint">根据开始时间 + 时长自动计算</div>
+      </div>
+      <div class="form-group">
+        <label>课程内容</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="f_courseContent" style="flex:1"></select>
+          <button type="button" class="btn btn-outline btn-sm" onclick="student.showCustomOptions('course')">自定义</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>教练</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="f_coach" style="flex:1"></select>
+          <button type="button" class="btn btn-outline btn-sm" onclick="student.showCustomOptions('coach')">自定义</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>是否住宿</label>
+        <select id="f_boarding">
+          <option value="否">否</option>
+          <option value="是">是</option>
+        </select>
+      </div>
+      <input type="hidden" id="f_editId">
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="student.closeModal()">取消</button>
+        <button type="button" class="btn btn-primary" id="studentSubmitBtn" onclick="student.save()">添加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Options Modal (通用：课程内容 / 教练) -->
+<div class="modal-overlay" id="customOptionsModal">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" onclick="student.closeCustomOptions()">&times;</button>
+    <h3 id="customOptionsTitle">管理自定义选项</h3>
+    <div class="custom-options-list" id="customOptionsList"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input type="text" id="newCustomOption" placeholder="输入新选项" style="flex:1;padding:8px 12px;border:1px solid var(--gray-300);border-radius:6px;font-size:14px">
+      <button class="btn btn-primary btn-sm" onclick="student.addCustomOption()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Menu Modal -->
+<div class="modal-overlay" id="importMenuModal">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <button class="modal-close" onclick="student.closeImportMenu()">&times;</button>
+    <h3>导入学生档案</h3>
+    <p style="color:var(--gray-500);font-size:14px;margin-bottom:20px;line-height:1.6">
+      请选择操作：<br>
+      先下载模板填写数据，再导入文件
+    </p>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <button type="button" class="btn btn-primary" style="justify-content:center;padding:14px;font-size:16px" onclick="student.importData();student.closeImportMenu()">
+        📥 选择文件导入
+      </button>
+      <button type="button" class="btn btn-outline" style="justify-content:center;padding:14px;font-size:16px" onclick="student.downloadTemplate();student.closeImportMenu()">
+        📄 下载导入模板
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal-overlay" id="confirmDeleteModal">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" onclick="student.closeDelete()">&times;</button>
+    <h3>确认删除</h3>
+    <p style="color:var(--gray-600);line-height:1.6" id="deleteConfirmText">确定要删除该学生档案吗？此操作不可恢复。</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" onclick="student.closeDelete()">取消</button>
+      <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="student.doDelete()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Dialog (batch) -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:440px">
+    <h3 id="confirmTitle">确认操作</h3>
+    <div id="confirmBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="batch.closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirmBtn">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// PWA Setup — 生成桌面图标 & 首次使用引导
+// ============================================================
+(function setupPWA() {
+  // 1. 生成动态 Manifest（PWA必需）
+  var manifest = {
+    name: '教务管理工作台',
+    short_name: '教务工作台',
+    description: '教务管理工作台 - 课程管理与学生档案',
+    start_url: './',
+    display: 'standalone',
+    background_color: '#4A6CF7',
+    theme_color: '#4A6CF7',
+    icons: [{ src: './icon.png', sizes: '192x192', type: 'image/png' }]
+  };
+  try {
+    var blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    document.querySelector('link[rel="manifest"]').href = url;
+  } catch(e) {}
+
+  // 2. 用 Canvas 生成 iOS 桌面图标
+  try {
+    var c = document.createElement('canvas');
+    c.width = 180; c.height = 180;
+    var ctx = c.getContext('2d');
+    // 圆角矩形背景
+    var r = 36;
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    ctx.lineTo(180 - r, 0);
+    ctx.quadraticCurveTo(180, 0, 180, r);
+    ctx.lineTo(180, 180 - r);
+    ctx.quadraticCurveTo(180, 180, 180 - r, 180);
+    ctx.lineTo(r, 180);
+    ctx.quadraticCurveTo(0, 180, 0, 180 - r);
+    ctx.lineTo(0, r);
+    ctx.quadraticCurveTo(0, 0, r, 0);
+    ctx.closePath();
+    ctx.fillStyle = '#4A6CF7';
+    ctx.fill();
+    // 内部白色区域
+    ctx.beginPath();
+    ctx.roundRect(24, 24, 132, 132, 20);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
+    // 书本图标
+    ctx.fillStyle = '#4A6CF7';
+    ctx.font = 'bold 72px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('📚', 90, 82);
+    // 底部文字
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 18px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('教务', 90, 158);
+    var iconUrl = c.toDataURL('image/png');
+    var link = document.createElement('link');
+    link.rel = 'apple-touch-icon';
+    link.href = iconUrl;
+    document.head.appendChild(link);
+  } catch(e) {}
+
+  // 3. 首次打开引导 — 检测是否从桌面启动
+  var isStandalone = window.navigator.standalone ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  // 仅在非 standalone 模式下、且 localStorage 无记录时提示一次
+  if (!isStandalone && !localStorage.getItem('edu_admin_pwa_hint')) {
+    setTimeout(function() {
+      var hint = document.createElement('div');
+      hint.id = 'pwaHint';
+      hint.innerHTML =
+        '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">' +
+        '<div style="background:#fff;border-radius:16px;padding:28px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.2);animation:fadeIn 0.3s ease">' +
+        '<div style="font-size:48px;margin-bottom:12px">📲</div>' +
+        '<h3 style="font-size:18px;margin-bottom:8px;color:#111827">添加到桌面</h3>' +
+        '<p style="font-size:14px;color:#6B7280;line-height:1.6;margin-bottom:16px">发送给朋友或给自己使用：<br>点击底部 <strong>分享按钮</strong> → <strong>添加到主屏幕</strong><br>即可像 App 一样使用，数据保存在本地</p>' +
+        '<p style="font-size:12px;color:#9CA3AF;margin-bottom:16px">💡 下次从桌面打开本提示不再显示</p>' +
+        '<button onclick="closePwaHint()" style="background:#4A6CF7;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:15px;cursor:pointer;font-family:inherit">知道了</button>' +
+        '</div></div>';
+      document.body.appendChild(hint);
+      try { localStorage.setItem('edu_admin_pwa_hint', '1'); } catch(e) {}
+    }, 800);
+  }
+})();
+function closePwaHint() {
+  var el = document.getElementById('pwaHint');
+  if (el) el.parentNode.removeChild(el);
+}
+
+// ============================================================
+// Data Layer
+// ============================================================
+var DB = {
+  _prefix: 'edu_admin_',
+  get: function(key, def) {
+    try {
+      var d = localStorage.getItem(this._prefix + key);
+      return d !== null ? JSON.parse(d) : def;
+    } catch(e) { return def; }
+  },
+  set: function(key, val) { try { localStorage.setItem(this._prefix + key, JSON.stringify(val)); } catch(e) {} },
+  get students() { return this.get('students', []); },
+  set students(v) { this.set('students', v); },
+  get courses() { return this.get('courses', {}); },
+  set courses(v) { this.set('courses', v); },
+  get courseOptions() { return this.get('courseOptions', ['统招', '一对一', '小班课', '集训']); },
+  set courseOptions(v) { this.set('courseOptions', v); },
+  get coaches() { return this.get('coaches', ['张教练', '李教练', '王教练']); },
+  set coaches(v) { this.set('coaches', v); }
+};
+
+// ============================================================
+// Toast
+// ============================================================
+function showToast(msg, type) {
+  type = type || 'success';
+  var el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function() {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(100px)';
+    el.style.transition = 'all 0.3s';
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 300);
+  }, 2500);
+}
+
+// ============================================================
+// Tab Switching
+// ============================================================
+document.querySelectorAll('.nav-item').forEach(function(item) {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+    item.classList.add('active');
+    var tab = document.getElementById('tab-' + item.dataset.tab);
+    if (tab) tab.classList.add('active');
+    if (item.dataset.tab === 'students') student.renderList();
+    if (item.dataset.tab === 'batch') batch.render();
+  });
+});
+
+// ============================================================
+// Header Date
+// ============================================================
+(function() {
+  var d = new Date();
+  var weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+  document.getElementById('dateDisplay').textContent =
+    d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 星期' + weekdays[d.getDay()];
+})();
+
+
+// ============================================================
+// MODULE 2: Students
+// ============================================================
+var student = {
+  editingId: null,
+  deletingId: null,
+  detailViewId: null,
+
+  // ---------- Modal ----------
+  showAddModal: function(id) {
+    this.editingId = id || null;
+    var title = document.getElementById('studentModalTitle');
+    var btn = document.getElementById('studentSubmitBtn');
+    title.textContent = id ? '编辑学生' : '添加学生';
+    btn.textContent = id ? '保存' : '添加';
+
+    // Clear fields
+    ['f_name','f_school','f_phone','f_startDate','f_duration','f_endDate','f_editId'].forEach(function(f) {
+      document.getElementById(f).value = '';
+    });
+
+    // 关键：记录当前编辑的学生ID
+    document.getElementById('f_editId').value = id || '';
+
+    this._populateCourseOptions();
+    this._populateCoachOptions();
+
+    if (id) {
+      var students = DB.students;
+      var s = students.find(function(st) { return st.id === id; });
+      if (s) {
+        document.getElementById('f_name').value = s.name || '';
+        document.getElementById('f_school').value = s.school || '';
+        document.getElementById('f_phone').value = s.phone || '';
+        document.getElementById('f_startDate').value = s.startDate || '';
+        document.getElementById('f_duration').value = s.duration || '';
+        document.getElementById('f_courseContent').value = s.courseContent || '';
+        if (s.coach && DB.coaches.indexOf(s.coach) === -1) {
+          DB.coaches.push(s.coach);
+          DB.coaches = DB.coaches;
+          this._populateCoachOptions();
+        }
+        document.getElementById('f_coach').value = s.coach || '';
+        document.getElementById('f_boarding').value = s.boarding || '否';
+        this.updateEndDate();
+      }
+    }
+    document.getElementById('studentModal').classList.add('show');
+  },
+
+  closeModal: function() {
+    document.getElementById('studentModal').classList.remove('show');
+    this.editingId = null;
+  },
+
+  updateEndDate: function() {
+    var start = document.getElementById('f_startDate').value.trim();
+    var dur = parseInt(document.getElementById('f_duration').value);
+    if (start && dur && dur > 0) {
+      var parts = start.split('-');
+      if (parts.length === 3) {
+        var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        if (!isNaN(d.getTime())) {
+          d.setDate(d.getDate() + dur);
+          document.getElementById('f_endDate').value =
+            d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+          return;
+        }
+      }
+    }
+    document.getElementById('f_endDate').value = '';
+  },
+
+  _populateCourseOptions: function() {
+    var sel = document.getElementById('f_courseContent');
+    sel.innerHTML = DB.courseOptions.map(function(o) { return '<option value="' + o + '">' + o + '</option>'; }).join('');
+  },
+
+  _populateCoachOptions: function() {
+    var sel = document.getElementById('f_coach');
+    sel.innerHTML = '<option value="">（未指定）</option>' +
+      DB.coaches.map(function(o) { return '<option value="' + o + '">' + o + '</option>'; }).join('');
+  },
+
+  // ---------- Save ----------
+  save: function() {
+    var name = document.getElementById('f_name').value.trim();
+    var startDate = document.getElementById('f_startDate').value.trim();
+    var duration = parseInt(document.getElementById('f_duration').value);
+    var school = document.getElementById('f_school').value.trim();
+    var phone = document.getElementById('f_phone').value.trim();
+    var endDate = document.getElementById('f_endDate').value;
+    var courseContent = document.getElementById('f_courseContent').value;
+    var coach = document.getElementById('f_coach').value;
+    var boarding = document.getElementById('f_boarding').value;
+    var editId = document.getElementById('f_editId').value;
+
+    // Clear highlights
+    document.querySelectorAll('#studentFormFields input').forEach(function(i) { i.style.borderColor = ''; });
+
+    // Validate date format
+    if (startDate && !/^\d{4}-\d{1,2}-\d{1,2}$/.test(startDate)) {
+      showToast('日期格式请使用 YYYY-MM-DD（如 2026-07-28）', 'error');
+      document.getElementById('f_startDate').style.borderColor = '#EF4444';
+      return;
+    }
+
+    var missing = [];
+    if (!name) missing.push('姓名');
+    if (!startDate) missing.push('课程开始时间');
+    if (!duration || duration < 1) missing.push('课程时长');
+
+    if (missing.length > 0) {
+      showToast('请填写：' + missing.join('、'), 'error');
+      if (!name) document.getElementById('f_name').style.borderColor = '#EF4444';
+      if (!startDate) document.getElementById('f_startDate').style.borderColor = '#EF4444';
+      if (!duration || duration < 1) document.getElementById('f_duration').style.borderColor = '#EF4444';
+      return;
+    }
+
+    var students = DB.students;
+    if (editId) {
+      var idx = students.findIndex(function(s) { return s.id === editId; });
+      if (idx >= 0) {
+        students[idx] = Object.assign({}, students[idx], { name: name, school: school, phone: phone, startDate: startDate, duration: duration, endDate: endDate, courseContent: courseContent, coach: coach, boarding: boarding });
+      }
+      showToast('已更新学生信息');
+    } else {
+      students.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        name: name,
+        school: school,
+        phone: phone,
+        startDate: startDate,
+        duration: duration,
+        endDate: endDate,
+        courseContent: courseContent,
+        coach: coach,
+        boarding: boarding,
+        adjustedDuration: duration,
+        createdAt: new Date().toISOString()
+      });
+      showToast('已添加学生');
+    }
+    DB.students = students;
+    this.closeModal();
+    // 从详情页编辑时，保存后回到详情页并刷新数据
+    if (this.detailViewId) {
+      this.viewDetail(this.detailViewId);
+    } else {
+      this.renderList();
+    }
+  },
+
+  // ---------- Remaining days ----------
+  getRemainingDays: function(s) {
+    var sd = new Date(s.startDate);
+    var total = s.adjustedDuration || s.duration;
+    var end = new Date(sd);
+    end.setDate(end.getDate() + total);
+    var now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  },
+
+  adjustDays: function(id, delta) {
+    var students = DB.students;
+    var s = students.find(function(st) { return st.id === id; });
+    if (!s) return;
+    var current = s.adjustedDuration || s.duration;
+    var newDur = current + delta;
+    if (newDur < 0) { showToast('课时不能为负数', 'error'); return; }
+    s.adjustedDuration = newDur;
+    var sd = new Date(s.startDate);
+    sd.setDate(sd.getDate() + newDur);
+    s.endDate = sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0');
+    DB.students = students;
+    this.renderList();
+    showToast(delta > 0 ? '课时 +1' : '课时 -1');
+  },
+
+  // ---------- Delete ----------
+  confirmDelete: function() {
+    if (!this.deletingId) return;
+    document.getElementById('deleteConfirmText').textContent =
+      '确定要删除该学生档案吗？此操作不可恢复。';
+    document.getElementById('confirmDeleteModal').classList.add('show');
+  },
+
+  closeDelete: function() {
+    document.getElementById('confirmDeleteModal').classList.remove('show');
+  },
+
+  doDelete: function() {
+    if (!this.deletingId) return;
+    var students = DB.students.filter(function(s) { return s.id !== student.deletingId; });
+    DB.students = students;
+    this.deletingId = null;
+    this.closeDelete();
+    this.backToList();
+    this.renderList();
+    showToast('已删除学生档案');
+  },
+
+  // ---------- Detail ----------
+  viewDetail: function(id) {
+    var students = DB.students;
+    var s = students.find(function(st) { return st.id === id; });
+    if (!s) return;
+    this.deletingId = id;
+    this.detailViewId = id;
+    document.getElementById('studentListView').style.display = 'none';
+    document.getElementById('studentDetailView').classList.add('show');
+    document.getElementById('detailTitle').textContent = s.name + ' 的详情';
+
+    var remain = this.getRemainingDays(s);
+    var items = [
+      { label: '姓名', value: s.name },
+      { label: '学校', value: s.school || '-' },
+      { label: '电话', value: s.phone || '-' },
+      { label: '课程开始时间', value: s.startDate },
+      { label: '课程时长', value: (s.adjustedDuration || s.duration) + ' 天' },
+      { label: '到期时间', value: s.endDate },
+      { label: '课程内容', value: s.courseContent || '-' },
+      { label: '教练', value: s.coach || '-' },
+      { label: '是否住宿', value: s.boarding || '否' },
+      { label: '剩余课时', value: remain > 0 ? remain + ' 天' : '已过期 ' + Math.abs(remain) + ' 天' }
+    ];
+    document.getElementById('detailGrid').innerHTML = items.map(function(it) {
+      return '<div class="detail-item"><div class="label">' + it.label + '</div><div class="value">' + it.value + '</div></div>';
+    }).join('');
+  },
+
+  // 从详情页打开编辑表单
+  editFromDetail: function() {
+    if (!this.detailViewId) return;
+    this.showAddModal(this.detailViewId);
+  },
+
+  backToList: function() {
+    this.deletingId = null;
+    this.detailViewId = null;
+    document.getElementById('studentListView').style.display = '';
+    document.getElementById('studentDetailView').classList.remove('show');
+  },
+
+  // ---------- List ----------
+  renderList: function() {
+    var searchVal = (document.getElementById('studentSearch').value || '').trim().toLowerCase();
+    var students = DB.students;
+    if (searchVal) {
+      students = students.filter(function(s) {
+        return (s.name || '').toLowerCase().indexOf(searchVal) !== -1 ||
+               (s.school || '').toLowerCase().indexOf(searchVal) !== -1 ||
+               (s.coach || '').toLowerCase().indexOf(searchVal) !== -1;
+      });
+    }
+
+    var grid = document.getElementById('studentGrid');
+    var empty = document.getElementById('studentEmpty');
+
+    if (students.length === 0) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    var self = this;
+    grid.innerHTML = students.map(function(s) {
+      var remain = self.getRemainingDays(s);
+      var effectiveDur = s.adjustedDuration || s.duration;
+      var badgeHtml = remain <= 0
+        ? '<span class="badge badge-danger">已过期</span>'
+        : (remain <= 5 ? '<span class="badge badge-warning">即将到期</span>' : '<span class="badge badge-info">' + remain + '天</span>');
+      var expiredHtml = remain <= 0 ? '<div class="expired-tag">已过期 ' + Math.abs(remain) + ' 天</div>' : '';
+      var coachHtml = s.coach
+        ? '<div style="text-align:center;font-size:12px;color:var(--gray-500);margin-top:4px">🏅 教练：' + s.coach + '</div>'
+        : '';
+      return '<div class="student-card" onclick="student.viewDetail(\'' + s.id + '\')">' +
+        '<div class="card-header"><span class="name">' + s.name + '</span>' + badgeHtml + '</div>' +
+        '<div class="remain-days">' + (remain > 0 ? remain : 0) + '</div>' +
+        '<div class="remain-label">剩余课时（天）</div>' + expiredHtml + coachHtml +
+        '<div class="card-footer" onclick="event.stopPropagation()">' +
+          '<button class="btn btn-outline btn-sm" onclick="student.adjustDays(\'' + s.id + '\', -1)"' + (effectiveDur <= 0 ? ' disabled' : '') + '>−</button>' +
+          '<button class="btn btn-primary btn-sm" onclick="student.adjustDays(\'' + s.id + '\', 1)">+</button>' +
+        '</div></div>';
+    }).join('');
+  },
+
+  // ---------- Custom Options (通用：course=课程内容 / coach=教练) ----------
+  customOptionsType: 'course',
+
+  showCustomOptions: function(type) {
+    this.customOptionsType = type || 'course';
+    var isCourse = this.customOptionsType === 'course';
+    document.getElementById('customOptionsTitle').textContent = isCourse ? '管理课程内容选项' : '管理教练选项';
+    document.getElementById('newCustomOption').placeholder = isCourse ? '输入新课程内容' : '输入新教练姓名';
+    this._renderCustomOptions();
+    document.getElementById('customOptionsModal').classList.add('show');
+  },
+
+  closeCustomOptions: function() {
+    document.getElementById('customOptionsModal').classList.remove('show');
+  },
+
+  _getOptions: function() {
+    return this.customOptionsType === 'course' ? DB.courseOptions : DB.coaches;
+  },
+
+  _setOptions: function(v) {
+    if (this.customOptionsType === 'course') { DB.courseOptions = v; }
+    else { DB.coaches = v; }
+  },
+
+  _refreshSelect: function() {
+    if (this.customOptionsType === 'course') { this._populateCourseOptions(); }
+    else { this._populateCoachOptions(); }
+  },
+
+  _renderCustomOptions: function() {
+    var list = document.getElementById('customOptionsList');
+    var self = this;
+    list.innerHTML = this._getOptions().map(function(o, i) {
+      if (i === 0) return '<div class="custom-option-item"><span>' + o + '</span><span style="color:var(--gray-400);font-size:12px">（默认，不可删除）</span></div>';
+      return '<div class="custom-option-item"><span>' + o + '</span><button class="del-btn" onclick="student.deleteCustomOption(' + i + ')">✕</button></div>';
+    }).join('');
+  },
+
+  addCustomOption: function() {
+    var input = document.getElementById('newCustomOption');
+    var val = input.value.trim();
+    if (!val) { showToast('请输入选项名称', 'error'); return; }
+    var options = this._getOptions();
+    if (options.indexOf(val) !== -1) { showToast('该选项已存在', 'warning'); return; }
+    options.push(val);
+    this._setOptions(options);
+    input.value = '';
+    this._renderCustomOptions();
+    this._refreshSelect();
+    showToast('已添加自定义选项');
+  },
+
+  deleteCustomOption: function(idx) {
+    if (idx === 0) { showToast('默认选项不可删除', 'warning'); return; }
+    var options = this._getOptions();
+    options.splice(idx, 1);
+    this._setOptions(options);
+    this._renderCustomOptions();
+    this._refreshSelect();
+    showToast('已删除选项');
+  },
+
+  // ---------- Import/Export ----------
+  exportData: function() {
+    var students = DB.students;
+    if (students.length === 0) { showToast('没有学生数据可导出', 'warning'); return; }
+
+    // CSV header
+    var csv = '\uFEFF'; // BOM for Excel UTF-8
+    csv += '姓名,学校,电话,课程开始时间,课程时长,课程内容,教练,是否住宿\n';
+
+    students.forEach(function(s) {
+      csv += (s.name || '') + ',';
+      csv += (s.school || '') + ',';
+      csv += (s.phone || '') + ',';
+      csv += (s.startDate || '') + ',';
+      csv += (s.adjustedDuration || s.duration) + ',';
+      csv += (s.courseContent || '') + ',';
+      csv += (s.coach || '') + ',';
+      csv += (s.boarding || '否') + '\n';
+    });
+
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = '学生档案_' + new Date().toISOString().split('T')[0] + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    showToast('导出成功，共 ' + students.length + ' 条记录');
+  },
+
+  importData: function() {
+    document.getElementById('importFileInput').click();
+  },
+
+  showImportMenu: function() {
+    document.getElementById('importMenuModal').classList.add('show');
+  },
+
+  closeImportMenu: function() {
+    document.getElementById('importMenuModal').classList.remove('show');
+  },
+
+  downloadTemplate: function() {
+    var csv = '\uFEFF';
+    csv += '姓名,学校,电话,课程开始时间,课程时长,课程内容,教练,是否住宿\n';
+    csv += '张三,第一中学,13800138000,2026-09-01,30,统招,张教练,是\n';
+    csv += '李四,第二中学,13900139000,2026-09-05,45,一对一,李教练,否\n';
+
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = '导入模板_学生档案.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    showToast('已下载导入模板');
+  },
+
+  _handleImport: function(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    var self = this;
+
+    reader.onload = function(e) {
+      var text = e.target.result;
+      var lines = text.split('\n').filter(function(l) { return l.trim(); });
+      if (lines.length < 2) { showToast('文件为空或格式不正确', 'error'); return; }
+
+      // Parse header
+      var header = lines[0].replace(/^\uFEFF/, '').split(',');
+      if (header.length < 4) { showToast('表头格式不正确，请参考：姓名,学校,电话,课程开始时间,课程时长,课程内容,教练,是否住宿', 'error'); return; }
+
+      // 判断是否包含教练列（新格式8列：…课程内容,教练,是否住宿；旧格式7列：…课程内容,是否住宿）
+      var hasCoachColumn = header.length >= 8;
+
+      var students = DB.students;
+      var added = 0;
+      var updated = 0;
+
+      for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split(',');
+        if (cols.length < 4) continue;
+        var name = cols[0].trim();
+        if (!name) continue;
+        var startDate = (cols[3] || '').trim();
+        var duration = parseInt(cols[4]) || 0;
+        if (!startDate || duration < 1) continue;
+
+        var school = (cols[1] || '').trim();
+        var phone = (cols[2] || '').trim();
+        var courseContent = (cols[5] || '').trim() || '统招';
+        var coach = '';
+        var boarding = '否';
+        if (hasCoachColumn) {
+          coach = (cols[6] || '').trim();
+          boarding = (cols[7] || '').trim() || '否';
+        } else {
+          // 旧格式：第7列是是否住宿
+          boarding = (cols[6] || '').trim() || '否';
+        }
+        // 兼容：若住宿列值不是"是/否"，视为教练列（处理更早版本数据）
+        if (boarding !== '是' && boarding !== '否' && !hasCoachColumn) {
+          coach = boarding;
+          boarding = '否';
+        }
+
+        // Check if exists (by name + phone as unique key)
+        var existing = students.findIndex(function(s) {
+          return s.name === name && (s.phone || '') === phone;
+        });
+
+        if (existing >= 0) {
+          // Update
+          students[existing] = Object.assign({}, students[existing], {
+            school: school,
+            startDate: startDate,
+            duration: duration,
+            courseContent: courseContent,
+            coach: coach,
+            boarding: boarding,
+            adjustedDuration: duration
+          });
+          var sd = new Date(startDate);
+          sd.setDate(sd.getDate() + duration);
+          students[existing].endDate = sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0');
+          updated++;
+        } else {
+          var sd = new Date(startDate);
+          sd.setDate(sd.getDate() + duration);
+          students.push({
+            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            name: name,
+            school: school,
+            phone: phone,
+            startDate: startDate,
+            duration: duration,
+            endDate: sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0'),
+            courseContent: courseContent,
+            coach: coach,
+            boarding: boarding,
+            adjustedDuration: duration,
+            createdAt: new Date().toISOString()
+          });
+          added++;
+        }
+      }
+
+      DB.students = students;
+      self.renderList();
+      showToast('导入完成：新增 ' + added + ' 人，更新 ' + updated + ' 人');
+    };
+
+    reader.onerror = function() {
+      showToast('读取文件失败', 'error');
+    };
+
+    reader.readAsText(file);
+  }
+};
+
+// Wire up import file input
+document.getElementById('importFileInput').addEventListener('change', function(e) {
+  if (e.target.files && e.target.files[0]) {
+    student._handleImport(e.target.files[0]);
+  }
+  this.value = '';
+});
+
+// Wire up search input
+document.getElementById('studentSearch').addEventListener('input', function() {
+  student.renderList();
+});
+
+// Wire up custom option Enter key
+document.getElementById('newCustomOption').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') student.addCustomOption();
+});
+
+// ============================================================
+// MODULE 3: Batch
+// ============================================================
+var batch = {
+  selected: new Set(),
+
+  render: function() {
+    var students = DB.students;
+    var container = document.getElementById('batchListContainer');
+    var actions = document.getElementById('batchActions');
+    var countLabel = document.getElementById('selectedCount');
+
+    if (students.length === 0) {
+      container.innerHTML = '<div class="empty-state">暂无学生数据</div>';
+      actions.classList.remove('show');
+      return;
+    }
+
+    var self = this;
+    var html = '<table class="batch-table"><thead><tr><th style="width:40px"></th><th>姓名</th><th>学校</th><th>开始时间</th><th>当前课时</th><th>状态</th></tr></thead><tbody>';
+
+    students.forEach(function(s) {
+      var remain = student.getRemainingDays(s);
+      var checked = self.selected.has(s.id) ? 'checked' : '';
+      var status = remain <= 0
+        ? '<span class="status-tag" style="background:#FEE2E2;color:#991B1B">已过期</span>'
+        : (remain <= 5
+          ? '<span class="status-tag" style="background:#FEF3C7;color:#92400E">即将到期</span>'
+          : '<span class="status-tag" style="background:#EEF2FF;color:#4A6CF7">正常</span>');
+      html += '<tr><td><input type="checkbox" ' + checked + ' value="' + s.id + '" onchange="batch.toggle(\'' + s.id + '\')"></td>' +
+        '<td><strong>' + s.name + '</strong></td><td>' + (s.school || '-') + '</td>' +
+        '<td>' + s.startDate + '</td><td>' + (s.adjustedDuration || s.duration) + ' 天</td><td>' + status + '</td></tr>';
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+
+    var count = this.selected.size;
+    countLabel.textContent = '已选 ' + count + ' 人';
+    if (count > 0) {
+      actions.classList.add('show');
+    } else {
+      actions.classList.remove('show');
+    }
+  },
+
+  toggle: function(id) {
+    if (this.selected.has(id)) { this.selected.delete(id); } else { this.selected.add(id); }
+    document.getElementById('selectAll').checked = this.selected.size === DB.students.length && DB.students.length > 0;
+    this.render();
+  },
+
+  toggleAll: function() {
+    var checked = document.getElementById('selectAll').checked;
+    if (checked) {
+      DB.students.forEach(function(s) { this.selected.add(s.id); }.bind(this));
+    } else {
+      this.selected.clear();
+    }
+    this.render();
+  },
+
+  confirmDeduct: function() {
+    var count = parseInt(document.getElementById('batchDeductInput').value);
+    if (!count || count < 1) { showToast('请输入有效的消课数量', 'error'); return; }
+    if (this.selected.size === 0) { showToast('请先选择学生', 'error'); return; }
+
+    var students = DB.students.filter(function(s) { return this.selected.has(s.id); }.bind(this));
+    document.getElementById('confirmBody').innerHTML =
+      '<p style="margin-bottom:8px">将统一扣除 <strong>' + count + '</strong> 课时，共影响 <strong>' + students.length + '</strong> 名学生：</p>' +
+      '<div class="confirm-list">' +
+      students.map(function(s) {
+        var cur = s.adjustedDuration || s.duration;
+        return '<div class="item">• ' + s.name + '（当前：' + cur + ' 天 → ' + Math.max(0, cur - count) + ' 天）</div>';
+      }).join('') + '</div>';
+
+    document.getElementById('confirmTitle').textContent = '确认批量消课';
+    document.getElementById('confirmBtn').onclick = function() { batch.doDeduct(count); };
+    document.getElementById('confirmModal').classList.add('show');
+  },
+
+  doDeduct: function(count) {
+    var students = DB.students;
+    students.forEach(function(s) {
+      if (this.selected.has(s.id)) {
+        var current = s.adjustedDuration || s.duration;
+        var newDur = Math.max(0, current - count);
+        s.adjustedDuration = newDur;
+        var sd = new Date(s.startDate);
+        sd.setDate(sd.getDate() + newDur);
+        s.endDate = sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0');
+      }
+    }.bind(this));
+    DB.students = students;
+    this.selected.clear();
+    document.getElementById('selectAll').checked = false;
+    document.getElementById('batchDeductInput').value = '';
+    document.getElementById('confirmModal').classList.remove('show');
+    this.render();
+    student.renderList();
+    showToast('批量消课完成，共扣除 ' + count + ' 课时');
+  },
+
+  closeConfirm: function() {
+    document.getElementById('confirmModal').classList.remove('show');
+  }
+};
+
+// ============================================================
+// Init
+// ============================================================
+student.renderList();
+batch.render();
+</script>
+</body>
+</html>
