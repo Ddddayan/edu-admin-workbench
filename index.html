@@ -840,11 +840,18 @@ var student = {
         badgeHtml = '<span class="badge badge-info">' + remain + '天</span>';
       }
       var remainColor = self.getRemainColor(remain);
+      // 整个卡片背景按紧急度变色（淡色，一眼可见）
+      var cardBg = '';
+      if (remain <= 0) cardBg = '#FECACA';        // 已过期：明显浅红
+      else if (remain <= 1) cardBg = '#FEE2E2';   // 剩1天：淡红
+      else if (remain <= 3) cardBg = '#FFEDD5';   // 剩3天：淡橙
+      else if (remain <= 7) cardBg = '#FEF3C7';   // 剩7天：淡黄
       var expiredHtml = remain <= 0 ? '<div class="expired-tag">已过期 ' + Math.abs(remain) + ' 天</div>' : '';
       var coachHtml = s.coach
         ? '<div style="text-align:center;font-size:12px;color:var(--gray-500);margin-top:4px">🏅 教练：' + s.coach + '</div>'
         : '';
-      return '<div class="student-card" onclick="student.viewDetail(\'' + s.id + '\')">' +
+      var styleAttr = cardBg ? 'background:' + cardBg + ';' : '';
+      return '<div class="student-card"' + (styleAttr ? ' style="' + styleAttr + '"' : '') + ' onclick="student.viewDetail(\'' + s.id + '\')">' +
         '<div class="card-header"><span class="name">' + s.name + '</span>' + badgeHtml + '</div>' +
         '<div class="remain-days" style="color:' + remainColor + '">' + (remain > 0 ? remain : 0) + '</div>' +
         '<div class="remain-label">剩余课时（天）</div>' + expiredHtml + coachHtml +
