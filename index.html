@@ -538,6 +538,34 @@ document.querySelectorAll('.nav-item').forEach(function(item) {
 // ============================================================
 // MODULE 2: Students
 // ============================================================
+// 把各种历史日期格式（2026/7/1、2026-7-1、2026.7.1、2026年7月1日）统一成 YYYY-MM-DD
+// <input type="date"> 只认 YYYY-MM-DD，其它格式会被静默置空，导致编辑内容丢失
+function normalizeDateStr(v) {
+  if (!v) return '';
+  v = String(v).trim();
+  if (!v) return '';
+  // 已是标准格式
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  // 提取 年 月 日 三个数字
+  var m = v.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (!m) return '';
+  var y = parseInt(m[1], 10), mo = parseInt(m[2], 10), d = parseInt(m[3], 10);
+  if (!y || !mo || !d || mo < 1 || mo > 12 || d < 1 || d > 31) return '';
+  return y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+}
+
+// 根据 开始时间 + 时长(天) 计算到期时间，返回 YYYY-MM-DD；无法计算时返回 ''
+function calcEndDate(startStr, days) {
+  var start = normalizeDateStr(startStr);
+  var dur = parseInt(days, 10);
+  if (!start || !dur || dur <= 0) return '';
+  var parts = start.split('-');
+  var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  if (isNaN(d.getTime())) return '';
+  d.setDate(d.getDate() + dur);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 var student = {
   editingId: null,
   deletingId: null,
@@ -570,7 +598,7 @@ var student = {
         document.getElementById('f_name').value = s.name || '';
         document.getElementById('f_school').value = s.school || '';
         document.getElementById('f_phone').value = s.phone || '';
-        document.getElementById('f_startDate').value = s.startDate || '';
+        document.getElementById('f_startDate').value = normalizeDateStr(s.startDate);
         document.getElementById('f_duration').value = s.duration || '';
         document.getElementById('f_courseContent').value = s.courseContent || '';
         // 编辑时若教练不在选项列表中，动态添加一个选项仅用于显示（不写入教练库）
@@ -603,19 +631,7 @@ var student = {
   updateEndDate: function() {
     var start = document.getElementById('f_startDate').value.trim();
     var dur = parseInt(document.getElementById('f_duration').value);
-    if (start && dur && dur > 0) {
-      var parts = start.split('-');
-      if (parts.length === 3) {
-        var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-        if (!isNaN(d.getTime())) {
-          d.setDate(d.getDate() + dur);
-          document.getElementById('f_endDate').value =
-            d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-          return;
-        }
-      }
-    }
-    document.getElementById('f_endDate').value = '';
+    document.getElementById('f_endDate').value = calcEndDate(start, dur);
   },
 
   _populateCourseOptions: function() {
@@ -645,6 +661,18 @@ var student = {
     // Clear highlights
     document.querySelectorAll('#studentFormFields input').forEach(function(i) { i.style.borderColor = ''; });
 
+    // 兜底：编辑模式下，若日期框为空/异常（常见于历史数据是斜杠格式，date 控件读不出来），
+    // 沿用该学生原有的开始时间，避免因日期而中断整个保存、导致其它修改丢失
+    if (editId && !normalizeDateStr(startDate)) {
+      var orig = DB.students.find(function(s) { return s.id === editId; });
+      if (orig && orig.startDate) {
+        startDate = normalizeDateStr(orig.startDate) || orig.startDate;
+        document.getElementById('f_startDate').value = startDate;
+      }
+    }
+    // 统一规范为 YYYY-MM-DD
+    startDate = normalizeDateStr(startDate) || startDate;
+
     // Validate date format
     if (startDate && !/^\d{4}-\d{1,2}-\d{1,2}$/.test(startDate)) {
       showToast('日期格式请使用 YYYY-MM-DD（如 2026-07-28）', 'error');
@@ -669,8 +697,13 @@ var student = {
     if (editId) {
       var idx = students.findIndex(function(s) { return s.id === editId; });
       if (idx >= 0) {
+        // 到期时间兜底：若表单算不出 endDate，则按 开始时间+时长 重算，避免被清空
+        if (!endDate) {
+          endDate = calcEndDate(startDate, students[idx].adjustedDuration || duration);
+        }
         students[idx] = Object.assign({}, students[idx], { name: name, school: school, phone: phone, startDate: startDate, duration: duration, endDate: endDate, courseContent: courseContent, coach: coach, boarding: boarding });
       }
+      DB.students = students;   // 显式写回，确保持久化
       showToast('已更新学生信息');
     } else {
       students.push({
