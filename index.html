@@ -292,6 +292,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
       <div class="form-group">
         <label>课程时长（天） <span class="required">*</span></label>
         <input type="number" id="f_duration" min="1" placeholder="请输入天数" oninput="student.updateEndDate()">
+        <div class="form-hint" id="durationHint">剩余课时，已消课记录会保留</div>
       </div>
       <div class="form-group">
         <label>到期时间</label>
@@ -566,6 +567,14 @@ function calcEndDate(startStr, days) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
+// 取学生当前课时：优先 adjustedDuration（含 0，代表已消完），否则回退 duration
+// 注意不能用 || 判断，否则 0 会被误当成"空"而取到原始时长
+function getCurDuration(s) {
+  if (!s) return 0;
+  if (s.adjustedDuration === 0 || s.adjustedDuration) return s.adjustedDuration;
+  return s.duration || 0;
+}
+
 var student = {
   editingId: null,
   deletingId: null,
@@ -588,6 +597,10 @@ var student = {
     // 关键：记录当前编辑的学生ID
     document.getElementById('f_editId').value = id || '';
 
+    // 提示文字：新增填总时长；编辑填当前剩余课时
+    var hintEl = document.getElementById('durationHint');
+    if (hintEl) hintEl.textContent = id ? '当前剩余课时（已消课记录会保留）' : '课程总时长';
+
     this._populateCourseOptions();
     this._populateCoachOptions();
 
@@ -599,7 +612,9 @@ var student = {
         document.getElementById('f_school').value = s.school || '';
         document.getElementById('f_phone').value = s.phone || '';
         document.getElementById('f_startDate').value = normalizeDateStr(s.startDate);
-        document.getElementById('f_duration').value = s.duration || '';
+        // 显示“当前剩余课时”（与详情页/列表一致）。编辑保存时按差值同步，保留历史消课记录。
+        var curDur = (s.adjustedDuration === 0 || s.adjustedDuration) ? s.adjustedDuration : (s.duration || '');
+        document.getElementById('f_duration').value = curDur;
         document.getElementById('f_courseContent').value = s.courseContent || '';
         // 编辑时若教练不在选项列表中，动态添加一个选项仅用于显示（不写入教练库）
         if (s.coach) {
@@ -697,11 +712,30 @@ var student = {
     if (editId) {
       var idx = students.findIndex(function(s) { return s.id === editId; });
       if (idx >= 0) {
-        // 到期时间兜底：若表单算不出 endDate，则按 开始时间+时长 重算，避免被清空
-        if (!endDate) {
-          endDate = calcEndDate(startDate, students[idx].adjustedDuration || duration);
-        }
-        students[idx] = Object.assign({}, students[idx], { name: name, school: school, phone: phone, startDate: startDate, duration: duration, endDate: endDate, courseContent: courseContent, coach: coach, boarding: boarding });
+        var old = students[idx];
+        // 表单里填的“课程时长”即用户看到的当前剩余课时（= adjustedDuration）
+        var oldAdj = (old.adjustedDuration === 0 || old.adjustedDuration) ? old.adjustedDuration : (old.duration || 0);
+        var oldTotal = old.duration || 0;
+        var newAdj = duration;   // 用户填的当前课时
+
+        // 总时长按同样差值平移，保持 adjustedDuration 与 duration 的关系一致（保留消课进度）
+        // 例：原总30天/已消5天(表单显示25)，改成表单40 → 增量+15 → 新总时长 45 天
+        var newTotal = oldTotal + (newAdj - oldAdj);
+        if (newTotal < newAdj) newTotal = newAdj;   // 总时长不应小于剩余
+        if (newTotal < 0) newTotal = 0;
+        if (newAdj < 0) newAdj = 0;
+
+        // 到期时间：按 开始时间 + 当前剩余课时 重算，与界面显示保持一致
+        endDate = calcEndDate(startDate, newAdj) || endDate;
+
+        students[idx] = Object.assign({}, old, {
+          name: name, school: school, phone: phone,
+          startDate: startDate,
+          duration: newTotal,
+          adjustedDuration: newAdj,
+          endDate: endDate,
+          courseContent: courseContent, coach: coach, boarding: boarding
+        });
       }
       DB.students = students;   // 显式写回，确保持久化
       showToast('已更新学生信息');
@@ -735,7 +769,7 @@ var student = {
   // ---------- Remaining days ----------
   getRemainingDays: function(s) {
     var sd = new Date(s.startDate);
-    var total = s.adjustedDuration || s.duration;
+    var total = getCurDuration(s);
     var end = new Date(sd);
     end.setDate(end.getDate() + total);
     var now = new Date();
@@ -747,7 +781,7 @@ var student = {
     var students = DB.students;
     var s = students.find(function(st) { return st.id === id; });
     if (!s) return;
-    var current = s.adjustedDuration || s.duration;
+    var current = getCurDuration(s);
     var newDur = current + delta;
     if (newDur < 0) { showToast('课时不能为负数', 'error'); return; }
     s.adjustedDuration = newDur;
@@ -794,13 +828,17 @@ var student = {
     document.getElementById('detailTitle').textContent = s.name + ' 的详情';
 
     var remain = this.getRemainingDays(s);
+    // 当前课时：adjustedDuration 为 0 时也要正确显示 0（不能用 || 兜底）
+    var curDur = (s.adjustedDuration === 0 || s.adjustedDuration) ? s.adjustedDuration : (s.duration || 0);
+    // 到期时间兜底：缺失时按 开始时间+当前课时 重算
+    var endDateShow = normalizeDateStr(s.endDate) || calcEndDate(s.startDate, curDur) || '-';
     var items = [
       { label: '姓名', value: s.name },
       { label: '学校', value: s.school || '-' },
       { label: '电话', value: s.phone || '-' },
-      { label: '课程开始时间', value: s.startDate },
-      { label: '课程时长', value: (s.adjustedDuration || s.duration) + ' 天' },
-      { label: '到期时间', value: s.endDate },
+      { label: '课程开始时间', value: normalizeDateStr(s.startDate) || s.startDate || '-' },
+      { label: '课程时长', value: curDur + ' 天' },
+      { label: '到期时间', value: endDateShow },
       { label: '课程内容', value: s.courseContent || '-' },
       { label: '教练', value: s.coach || '-' },
       { label: '是否住宿', value: s.boarding || '否' },
@@ -880,7 +918,7 @@ var student = {
     var self = this;
     grid.innerHTML = students.map(function(s) {
       var remain = self.getRemainingDays(s);
-      var effectiveDur = s.adjustedDuration || s.duration;
+      var effectiveDur = getCurDuration(s);
       // 分层提示：≤7天黄 / ≤3天橙 / ≤1天红 / 已过期深红
       var badgeHtml = '';
       if (remain <= 0) {
@@ -999,7 +1037,7 @@ var student = {
       csv += (s.school || '') + ',';
       csv += (s.phone || '') + ',';
       csv += (s.startDate || '') + ',';
-      csv += (s.adjustedDuration || s.duration) + ',';
+      csv += (getCurDuration(s)) + ',';
       csv += (s.courseContent || '') + ',';
       csv += (s.coach || '') + ',';
       csv += (s.boarding || '否') + '\n';
@@ -1257,7 +1295,7 @@ var batch = {
           : '<span class="status-tag" style="background:#FFEAE8;color:#E5332E">正常</span>');
       html += '<tr><td><input type="checkbox" ' + checked + ' value="' + s.id + '" onchange="batch.toggle(\'' + s.id + '\')"></td>' +
         '<td><strong>' + s.name + '</strong></td><td>' + (s.school || '-') + '</td>' +
-        '<td>' + (s.coach || '-') + '</td><td>' + s.startDate + '</td><td>' + (s.adjustedDuration || s.duration) + ' 天</td><td>' + status + '</td></tr>';
+        '<td>' + (s.coach || '-') + '</td><td>' + s.startDate + '</td><td>' + (getCurDuration(s)) + ' 天</td><td>' + status + '</td></tr>';
     });
 
     html += '</tbody></table>';
@@ -1299,7 +1337,7 @@ var batch = {
       '<p style="margin-bottom:8px">将统一增加 <strong>' + count + '</strong> 课时，共影响 <strong>' + students.length + '</strong> 名学生：</p>' +
       '<div class="confirm-list">' +
       students.map(function(s) {
-        var cur = s.adjustedDuration || s.duration;
+        var cur = getCurDuration(s);
         return '<div class="item">• ' + s.name + '（当前：' + cur + ' 天 → ' + (cur + count) + ' 天）</div>';
       }).join('') + '</div>';
 
@@ -1312,7 +1350,7 @@ var batch = {
     var students = DB.students;
     students.forEach(function(s) {
       if (this.selected.has(s.id)) {
-        var current = s.adjustedDuration || s.duration;
+        var current = getCurDuration(s);
         var newDur = current + count;
         s.adjustedDuration = newDur;
         var sd = new Date(s.startDate);
@@ -1341,7 +1379,7 @@ var batch = {
       '<p style="margin-bottom:8px">将统一扣除 <strong>' + count + '</strong> 课时，共影响 <strong>' + students.length + '</strong> 名学生：</p>' +
       '<div class="confirm-list">' +
       students.map(function(s) {
-        var cur = s.adjustedDuration || s.duration;
+        var cur = getCurDuration(s);
         return '<div class="item">• ' + s.name + '（当前：' + cur + ' 天 → ' + Math.max(0, cur - count) + ' 天）</div>';
       }).join('') + '</div>';
 
@@ -1354,7 +1392,7 @@ var batch = {
     var students = DB.students;
     students.forEach(function(s) {
       if (this.selected.has(s.id)) {
-        var current = s.adjustedDuration || s.duration;
+        var current = getCurDuration(s);
         var newDur = Math.max(0, current - count);
         s.adjustedDuration = newDur;
         var sd = new Date(s.startDate);
