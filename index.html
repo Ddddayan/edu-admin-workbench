@@ -555,16 +555,25 @@ function normalizeDateStr(v) {
   return y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0');
 }
 
-// 根据 开始时间 + 时长(天) 计算到期时间，返回 YYYY-MM-DD；无法计算时返回 ''
-function calcEndDate(startStr, days) {
+// 日期偏移：从 startStr 往后推 days 天，返回 YYYY-MM-DD；无法计算返回 ''
+function addDaysStr(startStr, days) {
   var start = normalizeDateStr(startStr);
-  var dur = parseInt(days, 10);
-  if (!start || !dur || dur <= 0) return '';
+  var n = parseInt(days, 10);
+  if (!start || isNaN(n)) return '';
   var parts = start.split('-');
   var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
   if (isNaN(d.getTime())) return '';
-  d.setDate(d.getDate() + dur);
+  d.setDate(d.getDate() + n);
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// 根据 开始时间 + 时长(天) 计算到期时间
+// 口径：开始当天计入训练时长。如 10月1日 开始、3天 → 10月1/2/3，到期日 10月3日
+// 即 到期日 = 开始日 + (时长 - 1)
+function calcEndDate(startStr, days) {
+  var dur = parseInt(days, 10);
+  if (!normalizeDateStr(startStr) || !dur || dur <= 0) return '';
+  return addDaysStr(startStr, dur - 1);
 }
 
 // 取学生当前课时：优先 adjustedDuration（含 0，代表已消完），否则回退 duration
@@ -767,14 +776,21 @@ var student = {
   },
 
   // ---------- Remaining days ----------
+  // 口径：开始当天计入时长，到期日 = 开始日 + 时长 - 1。
+  // 剩余天数 = 到期日 - 今天 + 1（到期日当天仍算 1 天）
   getRemainingDays: function(s) {
-    var sd = new Date(s.startDate);
-    var total = getCurDuration(s);
-    var end = new Date(sd);
-    end.setDate(end.getDate() + total);
+    var dur = getCurDuration(s);
+    // 未开始上课：剩余即全部课时
+    var endStr = normalizeDateStr(s.endDate) ||
+                 (s.startDate && dur > 0 ? calcEndDate(s.startDate, dur) : '');
+    if (!endStr) return dur; // 无日期信息时退回课时数
+
+    var parts = endStr.split('-');
+    var end = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
     var now = new Date();
     now.setHours(0, 0, 0, 0);
-    return Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    var daysToEnd = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return daysToEnd + 1;   // 到期日当天算 1 天
   },
 
   adjustDays: function(id, delta) {
@@ -785,9 +801,7 @@ var student = {
     var newDur = current + delta;
     if (newDur < 0) { showToast('课时不能为负数', 'error'); return; }
     s.adjustedDuration = newDur;
-    var sd = new Date(s.startDate);
-    sd.setDate(sd.getDate() + newDur);
-    s.endDate = sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0');
+    s.endDate = calcEndDate(s.startDate, newDur) || s.endDate;
     DB.students = students;
     this.renderList();
     showToast(delta > 0 ? '课时 +1' : '课时 -1');
@@ -842,7 +856,7 @@ var student = {
       { label: '课程内容', value: s.courseContent || '-' },
       { label: '教练', value: s.coach || '-' },
       { label: '是否住宿', value: s.boarding || '否' },
-      { label: '剩余课时', value: '<span style="color:' + this.getRemainColor(remain) + ';font-weight:700">' + (remain > 0 ? remain + ' 天' : '已过期 ' + Math.abs(remain) + ' 天') + '</span>' }
+      { label: '剩余课时', value: '<span style="color:' + this.getRemainColor(remain) + ';font-weight:700">' + (remain > 0 ? remain + ' 天' : (remain === 0 ? '今日到期' : '已过期 ' + Math.abs(remain) + ' 天')) + '</span>' }
     ];
     document.getElementById('detailGrid').innerHTML = items.map(function(it) {
       return '<div class="detail-item"><div class="label">' + it.label + '</div><div class="value">' + it.value + '</div></div>';
@@ -919,10 +933,12 @@ var student = {
     grid.innerHTML = students.map(function(s) {
       var remain = self.getRemainingDays(s);
       var effectiveDur = getCurDuration(s);
-      // 分层提示：≤7天黄 / ≤3天橙 / ≤1天红 / 已过期深红
+      // 分层提示：0天(今日到期)红 / ≤1天红 / ≤3天橙 / ≤7天黄 / 已过期深红
       var badgeHtml = '';
-      if (remain <= 0) {
+      if (remain < 0) {
         badgeHtml = '<span class="badge badge-danger">已过期</span>';
+      } else if (remain === 0) {
+        badgeHtml = '<span class="badge badge-red">今日到期</span>';
       } else if (remain <= 1) {
         badgeHtml = '<span class="badge badge-red">剩 ' + remain + ' 天</span>';
       } else if (remain <= 3) {
@@ -935,11 +951,13 @@ var student = {
       var remainColor = self.getRemainColor(remain);
       // 整个卡片背景按紧急度变色（淡色，一眼可见）
       var cardBg = '';
-      if (remain <= 0) cardBg = '#FECACA';        // 已过期：明显浅红
+      if (remain < 0) cardBg = '#FECACA';         // 已过期：明显浅红
+      else if (remain === 0) cardBg = '#FEE2E2';  // 今日到期：淡红
       else if (remain <= 1) cardBg = '#FEE2E2';   // 剩1天：淡红
       else if (remain <= 3) cardBg = '#FFEDD5';   // 剩3天：淡橙
       else if (remain <= 7) cardBg = '#FEF3C7';   // 剩7天：淡黄
-      var expiredHtml = remain <= 0 ? '<div class="expired-tag">已过期 ' + Math.abs(remain) + ' 天</div>' : '';
+      var expiredHtml = remain < 0 ? '<div class="expired-tag">已过期 ' + Math.abs(remain) + ' 天</div>' :
+                        (remain === 0 ? '<div class="expired-tag">今日到期</div>' : '');
       var coachHtml = s.coach
         ? '<div style="text-align:center;font-size:12px;color:var(--gray-500);margin-top:4px">🏅 教练：' + s.coach + '</div>'
         : '';
@@ -1188,13 +1206,10 @@ var student = {
             boarding: boarding,
             adjustedDuration: duration
           });
-          var sd = new Date(startDate);
-          sd.setDate(sd.getDate() + duration);
-          students[existing].endDate = sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0');
+          students[existing].endDate = calcEndDate(startDate, duration) ||
+            (new Date(startDate).getFullYear() + '-' + String(new Date(startDate).getMonth() + 1).padStart(2,'0') + '-' + String(new Date(startDate).getDate()).padStart(2,'0'));
           updated++;
         } else {
-          var sd = new Date(startDate);
-          sd.setDate(sd.getDate() + duration);
           students.push({
             id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
             name: name,
@@ -1202,7 +1217,7 @@ var student = {
             phone: phone,
             startDate: startDate,
             duration: duration,
-            endDate: sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0'),
+            endDate: calcEndDate(startDate, duration),
             courseContent: courseContent,
             coach: coach,
             boarding: boarding,
@@ -1288,14 +1303,16 @@ var batch = {
     students.forEach(function(s) {
       var remain = student.getRemainingDays(s);
       var checked = self.selected.has(s.id) ? 'checked' : '';
-      var status = remain <= 0
+      var status = remain < 0
         ? '<span class="status-tag" style="background:#FEE2E2;color:#991B1B">已过期</span>'
-        : (remain <= 5
-          ? '<span class="status-tag" style="background:#FEF3C7;color:#92400E">即将到期</span>'
-          : '<span class="status-tag" style="background:#FFEAE8;color:#E5332E">正常</span>');
+        : (remain === 0
+          ? '<span class="status-tag" style="background:#FEE2E2;color:#991B1B">今日到期</span>'
+          : (remain <= 5
+            ? '<span class="status-tag" style="background:#FEF3C7;color:#92400E">即将到期</span>'
+            : '<span class="status-tag" style="background:#FFEAE8;color:#E5332E">正常</span>'));
       html += '<tr><td><input type="checkbox" ' + checked + ' value="' + s.id + '" onchange="batch.toggle(\'' + s.id + '\')"></td>' +
         '<td><strong>' + s.name + '</strong></td><td>' + (s.school || '-') + '</td>' +
-        '<td>' + (s.coach || '-') + '</td><td>' + s.startDate + '</td><td>' + (getCurDuration(s)) + ' 天</td><td>' + status + '</td></tr>';
+        '<td>' + (s.coach || '-') + '</td><td>' + (normalizeDateStr(s.startDate) || s.startDate) + '</td><td>' + getCurDuration(s) + ' 天</td><td>' + status + '</td></tr>';
     });
 
     html += '</tbody></table>';
@@ -1353,9 +1370,7 @@ var batch = {
         var current = getCurDuration(s);
         var newDur = current + count;
         s.adjustedDuration = newDur;
-        var sd = new Date(s.startDate);
-        sd.setDate(sd.getDate() + newDur);
-        s.endDate = sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0');
+        s.endDate = calcEndDate(s.startDate, newDur) || s.endDate;
       }
     }.bind(this));
     DB.students = students;
@@ -1395,9 +1410,7 @@ var batch = {
         var current = getCurDuration(s);
         var newDur = Math.max(0, current - count);
         s.adjustedDuration = newDur;
-        var sd = new Date(s.startDate);
-        sd.setDate(sd.getDate() + newDur);
-        s.endDate = sd.getFullYear() + '-' + String(sd.getMonth() + 1).padStart(2,'0') + '-' + String(sd.getDate()).padStart(2,'0');
+        s.endDate = calcEndDate(s.startDate, newDur) || s.endDate;
       }
     }.bind(this));
     DB.students = students;
