@@ -108,6 +108,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .student-toolbar .right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .search-input { padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; width: 200px; outline: none; font-family: inherit; }
 .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229,51,46,0.12); }
+.filter-select { padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; outline: none; font-family: inherit; background: #fff; cursor: pointer; color: var(--gray-700); }
+.filter-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229,51,46,0.12); }
 
 .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
 .student-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; cursor: pointer; transition: var(--transition); border: 1px solid var(--gray-200); position: relative; }
@@ -120,6 +122,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .badge-red { background: #FEE2E2; color: #DC2626; }
 .badge-danger { background: #FEE2E2; color: #991B1B; }
 .badge-info { background: var(--primary-bg); color: var(--primary); }
+.type-tag { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 10px; font-weight: 500; }
+.type-period { background: #E8F1FE; color: #2563EB; }
+.type-count { background: #ECFDF5; color: #059669; }
+.type-uncat { background: var(--gray-100); color: var(--gray-500); }
 .btn-sort.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .student-card .remain-days { font-size: 28px; font-weight: 700; color: var(--primary); text-align: center; padding: 12px 0 4px; }
 .student-card .remain-label { font-size: 13px; color: var(--gray-500); text-align: center; }
@@ -165,6 +171,60 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 /* File input hidden */
 .file-input-hidden { display: none; }
 
+/* ============ 次数详情模块 ============ */
+.count-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--gray-200); padding-bottom: 0; }
+.count-tab { background: none; border: none; padding: 10px 18px; font-size: 15px; font-family: inherit; color: var(--gray-500); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 500; }
+.count-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+/* 日历 */
+.cal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.cal-month-label { font-size: 17px; font-weight: 600; color: var(--gray-800); min-width: 130px; text-align: center; }
+.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 13px; color: var(--gray-500); font-weight: 600; padding-bottom: 6px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-cell { position: relative; min-height: 62px; border-radius: 8px; border: 1px solid var(--gray-100); padding: 6px; cursor: pointer; transition: var(--transition); background: #fff; }
+.cal-cell:hover { border-color: var(--primary-light); }
+.cal-cell.other-month { opacity: 0.35; }
+.cal-cell.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(229,51,46,0.15); }
+.cal-cell.today .cal-daynum { background: var(--primary); color: #fff; border-radius: 50%; }
+.cal-daynum { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; font-size: 13px; font-weight: 600; color: var(--gray-700); }
+.cal-count { position: absolute; bottom: 5px; left: 6px; font-size: 11px; color: #059669; background: #ECFDF5; padding: 0 5px; border-radius: 8px; font-weight: 600; }
+.cal-day-panel { margin-top: 20px; border-top: 1px solid var(--gray-200); padding-top: 14px; }
+.cal-day-title { font-size: 15px; font-weight: 600; color: var(--gray-700); margin-bottom: 10px; }
+.cal-day-list { display: flex; flex-direction: column; gap: 8px; }
+.cal-day-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--gray-50); border-radius: 8px; cursor: pointer; transition: var(--transition); }
+.cal-day-item:hover { background: var(--primary-bg); }
+.cal-day-item .nm { font-weight: 600; color: var(--gray-800); font-size: 15px; }
+.cal-day-item .nm .content-small { font-weight: 400; color: var(--gray-500); font-size: 13px; margin-left: 8px; }
+.cal-day-item .deduct { font-size: 13px; color: #059669; font-weight: 600; }
+.cal-day-item.deleted-stu .nm { color: var(--gray-400); text-decoration: line-through; }
+
+.cal-fab { position: fixed; right: 32px; bottom: 32px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 28px; line-height: 1; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(229,51,46,0.4); z-index: 50; transition: var(--transition); }
+.cal-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(229,51,46,0.5); }
+.cal-fab:active { transform: scale(0.96); }
+
+/* 添加学生弹窗 */
+.add-student-toolbar { margin-bottom: 10px; }
+.add-student-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--gray-200); border-radius: 8px; padding: 6px; }
+.add-student-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.add-student-item:hover { background: var(--gray-50); }
+.add-student-item input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+.add-student-item .remain { margin-left: auto; font-size: 12px; color: var(--gray-500); }
+.add-student-empty { text-align: center; padding: 24px; color: var(--gray-400); font-size: 14px; }
+
+/* 学生视图网格 */
+.count-student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.count-student-card { background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 16px; text-align: center; cursor: pointer; transition: var(--transition); }
+.count-student-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow); transform: translateY(-2px); }
+.count-student-card .nm { font-size: 16px; font-weight: 600; color: var(--gray-800); }
+
+/* 学生消课记录列表 */
+.student-logs-list { max-height: 340px; overflow-y: auto; }
+.student-log-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--gray-100); }
+.student-log-item:last-child { border-bottom: none; }
+.student-log-item .info .date { font-size: 14px; font-weight: 600; color: var(--gray-800); }
+.student-log-item .info .content { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+.student-log-item .deduct { font-size: 13px; color: #059669; font-weight: 600; margin-right: 10px; }
+
 @media (max-width: 768px) {
   .sidebar { width: 56px; }
   .sidebar .nav-item { padding: 14px 0; justify-content: center; }
@@ -179,6 +239,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
   .batch-table th:nth-child(4), .batch-table td:nth-child(4) { display: none; }
   .student-toolbar .right { width: 100%; }
   .student-toolbar .right .btn { flex: 1; justify-content: center; }
+  .cal-cell { min-height: 48px; padding: 4px; }
+  .cal-daynum { width: 18px; height: 18px; font-size: 12px; }
+  .cal-count { font-size: 10px; padding: 0 4px; }
+  .cal-fab { right: 20px; bottom: 20px; width: 50px; height: 50px; font-size: 24px; }
 }
 
 ::-webkit-scrollbar { width: 6px; }
@@ -197,6 +261,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 <div class="app-container">
   <nav class="sidebar">
     <div class="nav-item active" data-tab="students"><span class="icon">👤</span><span>档案管理</span></div>
+    <div class="nav-item" data-tab="count"><span class="icon">🎯</span><span>次数详情</span></div>
     <div class="nav-item" data-tab="batch"><span class="icon">⚡</span><span>批量课时</span></div>
   </nav>
 
@@ -210,6 +275,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
             <div class="left">
               <span class="card-title" style="margin-bottom:0">学生档案</span>
               <input class="search-input" placeholder="搜索姓名/学校/教练..." id="studentSearch">
+              <select id="studentTypeFilter" class="filter-select" onchange="student.renderList()">
+                <option value="">全部类型</option>
+                <option value="周期">周期</option>
+                <option value="次数">次数</option>
+                <option value="未分类">未分类</option>
+              </select>
               <span style="display:flex;gap:6px">
                 <button class="btn btn-outline btn-sm btn-sort" id="sortAscBtn" onclick="student.setSort('asc')">到期 ↑</button>
                 <button class="btn btn-outline btn-sm btn-sort" id="sortDescBtn" onclick="student.setSort('desc')">到期 ↓</button>
@@ -246,6 +317,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
         <div class="student-toolbar">
           <div class="left">
             <input class="search-input" placeholder="搜索姓名/学校/教练..." id="batchSearch">
+            <select id="batchTypeFilter" class="filter-select" onchange="batch.render()">
+              <option value="">全部类型</option>
+              <option value="周期">周期</option>
+              <option value="次数">次数</option>
+              <option value="未分类">未分类</option>
+            </select>
           </div>
         </div>
         <div class="batch-toolbar">
@@ -264,7 +341,114 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
       </div>
     </div>
 
+    <!-- MODULE 4: 次数详情 -->
+    <div class="tab-content" id="tab-count">
+      <div class="card">
+        <!-- 顶部页签：日历 / 学生 -->
+        <div class="count-tabs">
+          <button class="count-tab active" data-view="calendar" onclick="countModule.switchView('calendar')">📅 日历</button>
+          <button class="count-tab" data-view="students" onclick="countModule.switchView('students')">👤 学生</button>
+        </div>
+
+        <!-- 日历视图 -->
+        <div id="countCalendarView">
+          <div class="cal-header">
+            <button class="btn btn-outline btn-sm" onclick="countModule.prevMonth()">‹</button>
+            <span id="calMonthLabel" class="cal-month-label"></span>
+            <button class="btn btn-outline btn-sm" onclick="countModule.nextMonth()">›</button>
+            <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="countModule.today()">今天</button>
+          </div>
+          <div class="cal-weekdays">
+            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+
+          <div class="cal-day-panel">
+            <div class="cal-day-title" id="calDayTitle">请选择日期</div>
+            <div class="cal-day-list" id="calDayList"></div>
+          </div>
+
+          <!-- 右下角悬浮加号 -->
+          <button class="cal-fab" id="calFab" title="添加上课学生" onclick="countModule.openAddStudents()">＋</button>
+        </div>
+
+        <!-- 学生视图 -->
+        <div id="countStudentsView" style="display:none">
+          <div class="student-toolbar">
+            <div class="left">
+              <input class="search-input" placeholder="搜索学生姓名..." id="countStudentSearch">
+            </div>
+          </div>
+          <div class="count-student-grid" id="countStudentGrid"></div>
+          <div class="empty-state" id="countStudentEmpty" style="display:none">暂无次数类型的学生</div>
+        </div>
+      </div>
+    </div>
+
   </main>
+</div>
+
+<!-- 次数详情：添加上课学生弹窗 -->
+<div class="modal-overlay" id="addStudentsModal">
+  <div class="modal" style="max-width:460px">
+    <button class="modal-close" onclick="countModule.closeAddStudents()">&times;</button>
+    <h3>添加上课学生</h3>
+    <div class="form-hint" id="addStudentsDateHint" style="margin-bottom:10px"></div>
+    <div class="add-student-toolbar">
+      <input type="text" id="addStudentSearch" placeholder="搜索姓名..." class="search-input" style="width:100%">
+    </div>
+    <div class="add-student-list" id="addStudentList"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" onclick="countModule.closeAddStudents()">取消</button>
+      <button type="button" class="btn btn-primary" onclick="countModule.saveAddedStudents()">保存（每人扣 1 节）</button>
+    </div>
+  </div>
+</div>
+
+<!-- 次数详情：记录详情弹窗 -->
+<div class="modal-overlay" id="logDetailModal">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-close" onclick="countModule.closeLogDetail()">&times;</button>
+    <h3>上课记录</h3>
+    <div class="form-group">
+      <label>学生姓名</label>
+      <input type="text" id="log_name" readonly>
+    </div>
+    <div class="form-group">
+      <label>上课时间</label>
+      <input type="text" id="log_date" readonly>
+    </div>
+    <div class="form-group">
+      <label>扣除课时</label>
+      <input type="number" min="0" id="log_deduct">
+      <div class="form-hint">修改后会同步调整该学生档案中的剩余次数</div>
+    </div>
+    <div class="form-group">
+      <label>上课内容</label>
+      <input type="text" id="log_content" placeholder="选填，如：正手发球">
+    </div>
+    <input type="hidden" id="log_editId">
+    <div class="modal-actions" style="justify-content:space-between">
+      <button type="button" class="btn btn-danger" onclick="countModule.deleteLog()">🗑 删除记录</button>
+      <span style="display:flex;gap:8px">
+        <button type="button" class="btn btn-outline" onclick="countModule.closeLogDetail()">取消</button>
+        <button type="button" class="btn btn-primary" onclick="countModule.saveLogDetail()">保存</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- 次数详情：学生消课记录弹窗 -->
+<div class="modal-overlay" id="studentLogsModal">
+  <div class="modal" style="max-width:520px">
+    <button class="modal-close" onclick="countModule.closeStudentLogs()">&times;</button>
+    <h3 id="studentLogsTitle">学生消课记录</h3>
+    <div class="form-hint" id="studentLogsSummary" style="margin-bottom:10px"></div>
+    <div class="student-logs-list" id="studentLogsList"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" onclick="countModule.closeStudentLogs()">关闭</button>
+    </div>
+  </div>
 </div>
 
 <!-- Add Student Modal -->
@@ -286,18 +470,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
         <input type="text" id="f_phone" placeholder="选填">
       </div>
       <div class="form-group">
+        <label>课程类型 <span class="required">*</span></label>
+        <select id="f_courseType" onchange="student.onCourseTypeChange()">
+          <option value="周期">周期</option>
+          <option value="次数">次数</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label>课程开始时间 <span class="required">*</span></label>
         <input type="date" id="f_startDate" onchange="student.updateEndDate()">
       </div>
       <div class="form-group">
-        <label>课程时长（天） <span class="required">*</span></label>
+        <label id="durationLabel">课程时长（天） <span class="required">*</span></label>
         <input type="number" id="f_duration" min="1" placeholder="请输入天数" oninput="student.updateEndDate()">
         <div class="form-hint" id="durationHint">剩余课时，已消课记录会保留</div>
       </div>
       <div class="form-group">
         <label>到期时间</label>
-        <input type="text" id="f_endDate" placeholder="自动计算" readonly>
-        <div class="form-hint">根据开始时间 + 时长自动计算</div>
+        <input type="date" id="f_endDate" placeholder="自动计算" readonly>
+        <div class="form-hint" id="endDateHint">根据开始时间 + 时长自动计算</div>
       </div>
       <div class="form-group">
         <label>课程内容</label>
@@ -490,7 +681,10 @@ var DB = {
   get courseOptions() { return this.get('courseOptions', ['统招', '一对一', '小班课', '集训']); },
   set courseOptions(v) { this.set('courseOptions', v); },
   get coaches() { return this.get('coaches', ['张教练', '李教练', '王教练']); },
-  set coaches(v) { this.set('coaches', v); }
+  set coaches(v) { this.set('coaches', v); },
+  // 消课记录：{ "YYYY-MM-DD": [ {id, studentId, name, deduct, content, createdAt} ] }
+  get classLogs() { return this.get('classLogs', {}); },
+  set classLogs(v) { this.set('classLogs', v); }
 };
 
 // ============================================================
@@ -522,6 +716,7 @@ document.querySelectorAll('.nav-item').forEach(function(item) {
     if (tab) tab.classList.add('active');
     if (item.dataset.tab === 'students') student.renderList();
     if (item.dataset.tab === 'batch') batch.render();
+    if (item.dataset.tab === 'count') countModule.render();
   });
 });
 
@@ -602,6 +797,8 @@ var student = {
     ['f_name','f_school','f_phone','f_startDate','f_duration','f_endDate','f_editId'].forEach(function(f) {
       document.getElementById(f).value = '';
     });
+    // 默认类型：新增=周期；编辑时下面按数据回填（旧数据无类型则默认周期）
+    document.getElementById('f_courseType').value = '周期';
 
     // 关键：记录当前编辑的学生ID
     document.getElementById('f_editId').value = id || '';
@@ -620,6 +817,8 @@ var student = {
         document.getElementById('f_name').value = s.name || '';
         document.getElementById('f_school').value = s.school || '';
         document.getElementById('f_phone').value = s.phone || '';
+        // 旧数据无 courseType → 默认周期（平滑过渡，保存后即成为周期类）
+        document.getElementById('f_courseType').value = s.courseType || '周期';
         document.getElementById('f_startDate').value = normalizeDateStr(s.startDate);
         // 显示“当前剩余课时”（与详情页/列表一致）。编辑保存时按差值同步，保留历史消课记录。
         var curDur = (s.adjustedDuration === 0 || s.adjustedDuration) ? s.adjustedDuration : (s.duration || '');
@@ -641,10 +840,44 @@ var student = {
         }
         document.getElementById('f_coach').value = s.coach || '';
         document.getElementById('f_boarding').value = s.boarding || '否';
-        this.updateEndDate();
+        if (s.endDate) document.getElementById('f_endDate').value = normalizeDateStr(s.endDate) || s.endDate;
+        this.onCourseTypeChange(true);  // 切换表单样式（次数类可手填到期）
       }
+    } else {
+      this.onCourseTypeChange();
     }
     document.getElementById('studentModal').classList.add('show');
+  },
+
+  // 课程类型切换：次数类 => 时长改称“课程次数”、单位“次”，到期时间改为可手填
+  onCourseTypeChange: function(isEdit) {
+    var type = document.getElementById('f_courseType').value;
+    var isCount = (type === '次数');
+    var label = document.getElementById('durationLabel');
+    var input = document.getElementById('f_duration');
+    var endInput = document.getElementById('f_endDate');
+    var endHint = document.getElementById('endDateHint');
+    var hintEl = document.getElementById('durationHint');
+    var editing = isEdit === true || (this.editingId != null);
+
+    if (isCount) {
+      label.innerHTML = '课程次数 <span class="required">*</span>';
+      input.placeholder = '请输入次数';
+      endInput.readOnly = false;                 // 次数类：到期时间可选择
+      endInput.style.background = '';
+      endInput.style.pointerEvents = 'auto';     // 可点击弹出日期选择器
+      if (endHint) endHint.textContent = '点击选择到期时间';
+      if (hintEl) hintEl.textContent = '总次数（已上课记录会保留）';
+    } else {
+      label.innerHTML = '课程时长（天） <span class="required">*</span>';
+      input.placeholder = '请输入天数';
+      endInput.readOnly = true;                  // 周期类：到期时间自动算
+      endInput.style.background = '#F3F4F6';
+      endInput.style.pointerEvents = 'none';     // 禁用点击（比 readonly 在 iOS 上更可靠）
+      if (endHint) endHint.textContent = '根据开始时间 + 时长自动计算';
+      if (hintEl) hintEl.textContent = editing ? '当前剩余课时（已消课记录会保留）' : '课程总时长';
+      this.updateEndDate();
+    }
   },
 
   closeModal: function() {
@@ -672,15 +905,19 @@ var student = {
   // ---------- Save ----------
   save: function() {
     var name = document.getElementById('f_name').value.trim();
+    var courseType = document.getElementById('f_courseType').value || '周期';
     var startDate = document.getElementById('f_startDate').value.trim();
     var duration = parseInt(document.getElementById('f_duration').value);
     var school = document.getElementById('f_school').value.trim();
     var phone = document.getElementById('f_phone').value.trim();
-    var endDate = document.getElementById('f_endDate').value;
+    var endDate = document.getElementById('f_endDate').value.trim();
     var courseContent = document.getElementById('f_courseContent').value;
     var coach = document.getElementById('f_coach').value;
     var boarding = document.getElementById('f_boarding').value;
     var editId = document.getElementById('f_editId').value;
+    var isCount = (courseType === '次数');
+    var unit = isCount ? '次' : '天';
+    var durFieldName = isCount ? '课程次数' : '课程时长';
 
     // Clear highlights
     document.querySelectorAll('#studentFormFields input').forEach(function(i) { i.style.borderColor = ''; });
@@ -696,6 +933,7 @@ var student = {
     }
     // 统一规范为 YYYY-MM-DD
     startDate = normalizeDateStr(startDate) || startDate;
+    endDate = normalizeDateStr(endDate) || endDate;
 
     // Validate date format
     if (startDate && !/^\d{4}-\d{1,2}-\d{1,2}$/.test(startDate)) {
@@ -703,17 +941,25 @@ var student = {
       document.getElementById('f_startDate').style.borderColor = '#EF4444';
       return;
     }
+    if (endDate && !/^\d{4}-\d{1,2}-\d{1,2}$/.test(endDate)) {
+      showToast('到期时间格式请使用 YYYY-MM-DD（如 2026-07-28）', 'error');
+      document.getElementById('f_endDate').style.borderColor = '#EF4444';
+      return;
+    }
 
     var missing = [];
     if (!name) missing.push('姓名');
     if (!startDate) missing.push('课程开始时间');
-    if (!duration || duration < 1) missing.push('课程时长');
+    if (!duration || duration < 1) missing.push(durFieldName);
+    // 次数类：到期时间由使用者填写，属必填
+    if (isCount && !endDate) missing.push('到期时间');
 
     if (missing.length > 0) {
       showToast('请填写：' + missing.join('、'), 'error');
       if (!name) document.getElementById('f_name').style.borderColor = '#EF4444';
       if (!startDate) document.getElementById('f_startDate').style.borderColor = '#EF4444';
       if (!duration || duration < 1) document.getElementById('f_duration').style.borderColor = '#EF4444';
+      if (isCount && !endDate) document.getElementById('f_endDate').style.borderColor = '#EF4444';
       return;
     }
 
@@ -722,23 +968,28 @@ var student = {
       var idx = students.findIndex(function(s) { return s.id === editId; });
       if (idx >= 0) {
         var old = students[idx];
-        // 表单里填的“课程时长”即用户看到的当前剩余课时（= adjustedDuration）
+        // 表单里填的“课程时长/次数”即用户看到的当前剩余（= adjustedDuration）
         var oldAdj = (old.adjustedDuration === 0 || old.adjustedDuration) ? old.adjustedDuration : (old.duration || 0);
         var oldTotal = old.duration || 0;
-        var newAdj = duration;   // 用户填的当前课时
+        var newAdj = duration;   // 用户填的当前课时/次数
 
         // 总时长按同样差值平移，保持 adjustedDuration 与 duration 的关系一致（保留消课进度）
-        // 例：原总30天/已消5天(表单显示25)，改成表单40 → 增量+15 → 新总时长 45 天
         var newTotal = oldTotal + (newAdj - oldAdj);
         if (newTotal < newAdj) newTotal = newAdj;   // 总时长不应小于剩余
         if (newTotal < 0) newTotal = 0;
         if (newAdj < 0) newAdj = 0;
 
-        // 到期时间：按 开始时间 + 当前剩余课时 重算，与界面显示保持一致
-        endDate = calcEndDate(startDate, newAdj) || endDate;
+        if (isCount) {
+          // 次数类：到期时间以使用者填写为准，不自动计算；未填则沿用原值
+          endDate = endDate || normalizeDateStr(old.endDate) || old.endDate || '';
+        } else {
+          // 周期类：按 开始时间 + 当前剩余课时 重算到期时间
+          endDate = calcEndDate(startDate, newAdj) || endDate;
+        }
 
         students[idx] = Object.assign({}, old, {
           name: name, school: school, phone: phone,
+          courseType: courseType,
           startDate: startDate,
           duration: newTotal,
           adjustedDuration: newAdj,
@@ -754,9 +1005,10 @@ var student = {
         name: name,
         school: school,
         phone: phone,
+        courseType: courseType,
         startDate: startDate,
         duration: duration,
-        endDate: endDate,
+        endDate: isCount ? endDate : (calcEndDate(startDate, duration) || endDate),
         courseContent: courseContent,
         coach: coach,
         boarding: boarding,
@@ -775,22 +1027,42 @@ var student = {
     }
   },
 
-  // ---------- Remaining days ----------
-  // 口径：开始当天计入时长，到期日 = 开始日 + 时长 - 1。
-  // 剩余天数 = 到期日 - 今天 + 1（到期日当天仍算 1 天）
+  // ---------- Remaining ----------
+  // 统一口径：开始当天计入时长，到期日 = 开始日 + 时长 - 1；剩余天数 = 到期日 - 今天 + 1
+  // 说明：界面上的大数字/徽标/底色对「周期」和「次数」两种类型一致，都看剩余天数。
+  //      次数类若未填到期时间，才退回显示剩余次数（避免无日期时数字为空）。
   getRemainingDays: function(s) {
     var dur = getCurDuration(s);
-    // 未开始上课：剩余即全部课时
+    var isCount = (s.courseType || '') === '次数';
+
+    // 优先用到期时间；周期类缺失时按 开始时间 + 时长 重算
     var endStr = normalizeDateStr(s.endDate) ||
-                 (s.startDate && dur > 0 ? calcEndDate(s.startDate, dur) : '');
-    if (!endStr) return dur; // 无日期信息时退回课时数
+                 (!isCount && s.startDate && dur > 0 ? calcEndDate(s.startDate, dur) : '');
+    if (!endStr) return isCount ? dur : dur; // 无日期信息时退回原始量
 
     var parts = endStr.split('-');
     var end = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    if (isNaN(end.getTime())) return dur;
     var now = new Date();
     now.setHours(0, 0, 0, 0);
     var daysToEnd = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return daysToEnd + 1;   // 到期日当天算 1 天
+  },
+
+  // 剩余次数（次数类专用，用于 −/+ 与「已用尽」判定）
+  getRemainingCount: function(s) {
+    return getCurDuration(s);
+  },
+
+  // 单位：次数类为“次”，其余为“天”
+  getUnit: function(s) {
+    return (s && (s.courseType || '') === '次数') ? '次' : '天';
+  },
+
+  // 课程类型显示文本：无类型字段的旧数据视为“未分类”
+  getTypeText: function(s) {
+    if (!s) return '未分类';
+    return s.courseType || '未分类';
   },
 
   adjustDays: function(id, delta) {
@@ -799,12 +1071,16 @@ var student = {
     if (!s) return;
     var current = getCurDuration(s);
     var newDur = current + delta;
-    if (newDur < 0) { showToast('课时不能为负数', 'error'); return; }
+    if (newDur < 0) { showToast((s.courseType === '次数' ? '次数' : '课时') + '不能为负数', 'error'); return; }
     s.adjustedDuration = newDur;
-    s.endDate = calcEndDate(s.startDate, newDur) || s.endDate;
+    // 次数类到期时间由使用者填写，不随加减课变化
+    if (s.courseType !== '次数') {
+      s.endDate = calcEndDate(s.startDate, newDur) || s.endDate;
+    }
     DB.students = students;
     this.renderList();
-    showToast(delta > 0 ? '课时 +1' : '课时 -1');
+    showToast(delta > 0 ? (s.courseType === '次数' ? '次数 +1' : '课时 +1')
+                        : (s.courseType === '次数' ? '次数 -1' : '课时 -1'));
   },
 
   // ---------- Delete ----------
@@ -841,23 +1117,38 @@ var student = {
     document.getElementById('studentDetailView').classList.add('show');
     document.getElementById('detailTitle').textContent = s.name + ' 的详情';
 
-    var remain = this.getRemainingDays(s);
-    // 当前课时：adjustedDuration 为 0 时也要正确显示 0（不能用 || 兜底）
+    var remain = this.getRemainingDays(s);            // 剩余天数（两类统一口径）
+    var remainCount = getCurDuration(s);              // 剩余次数
+    var isCount = (s.courseType === '次数');
+    var unit = isCount ? '次' : '天';
+    // 当前课时/次数：adjustedDuration 为 0 时也要正确显示 0（不能用 || 兜底）
     var curDur = (s.adjustedDuration === 0 || s.adjustedDuration) ? s.adjustedDuration : (s.duration || 0);
-    // 到期时间兜底：缺失时按 开始时间+当前课时 重算
-    var endDateShow = normalizeDateStr(s.endDate) || calcEndDate(s.startDate, curDur) || '-';
+    // 到期时间兜底：周期类缺失时按 开始时间+当前课时 重算；次数类留空显示 -
+    var endDateShow = normalizeDateStr(s.endDate) ||
+                      (isCount ? '' : calcEndDate(s.startDate, curDur)) || '-';
+
+    // 剩余量显示文案（统一按天数，与卡片一致）
+    var remainText = remain > 0 ? (remain + ' 天')
+                   : (remain === 0 ? '今日到期' : '已过期 ' + Math.abs(remain) + ' 天');
+
     var items = [
       { label: '姓名', value: s.name },
       { label: '学校', value: s.school || '-' },
       { label: '电话', value: s.phone || '-' },
+      { label: '课程类型', value: this.getTypeText(s) },
       { label: '课程开始时间', value: normalizeDateStr(s.startDate) || s.startDate || '-' },
-      { label: '课程时长', value: curDur + ' 天' },
+      { label: isCount ? '课程次数' : '课程时长', value: curDur + ' ' + unit },
       { label: '到期时间', value: endDateShow },
       { label: '课程内容', value: s.courseContent || '-' },
       { label: '教练', value: s.coach || '-' },
       { label: '是否住宿', value: s.boarding || '否' },
-      { label: '剩余课时', value: '<span style="color:' + this.getRemainColor(remain) + ';font-weight:700">' + (remain > 0 ? remain + ' 天' : (remain === 0 ? '今日到期' : '已过期 ' + Math.abs(remain) + ' 天')) + '</span>' }
+      // 剩余天数：两类统一按到期时间计算
+      { label: '剩余天数', value: '<span style="color:' + this.getRemainColor(remain) + ';font-weight:700">' + remainText + '</span>' }
     ];
+    // 次数类额外展示真实剩余次数
+    if (isCount) {
+      items.splice(items.length - 1, 0, { label: '剩余次数', value: remainCount + ' 次' });
+    }
     document.getElementById('detailGrid').innerHTML = items.map(function(it) {
       return '<div class="detail-item"><div class="label">' + it.label + '</div><div class="value">' + it.value + '</div></div>';
     }).join('');
@@ -901,12 +1192,19 @@ var student = {
 
   renderList: function() {
     var searchVal = (document.getElementById('studentSearch').value || '').trim().toLowerCase();
+    var typeVal = document.getElementById('studentTypeFilter').value || '';
     var students = DB.students;
     if (searchVal) {
       students = students.filter(function(s) {
         return (s.name || '').toLowerCase().indexOf(searchVal) !== -1 ||
                (s.school || '').toLowerCase().indexOf(searchVal) !== -1 ||
                (s.coach || '').toLowerCase().indexOf(searchVal) !== -1;
+      });
+    }
+    // 课程类型筛选（未分类 = 老数据无 courseType 字段）
+    if (typeVal) {
+      students = students.filter(function(s) {
+        return (s.courseType || '未分类') === typeVal;
       });
     }
     // 按到期时间排序
@@ -931,41 +1229,58 @@ var student = {
 
     var self = this;
     grid.innerHTML = students.map(function(s) {
-      var remain = self.getRemainingDays(s);
-      var effectiveDur = getCurDuration(s);
-      // 分层提示：0天(今日到期)红 / ≤1天红 / ≤3天橙 / ≤7天黄 / 已过期深红
+      var remain = self.getRemainingDays(s);          // 剩余天数（两类统一口径）
+      var remainCount = getCurDuration(s);            // 剩余次数（次数类专用）
+      var effectiveDur = remainCount;
+      var isCount = (s.courseType === '次数');       // 次数类
+      var unit = isCount ? '次' : '天';
+      var typeTag = '<span class="type-tag ' + (!s.courseType ? 'type-uncat' : (isCount ? 'type-count' : 'type-period')) + '">' +
+                    self.getTypeText(s) + '</span>';
+
+      // 徽标与卡片底色：周期类与次数类使用同一套分层逻辑（均以剩余天数为准）
       var badgeHtml = '';
+      var cardBg = '';
+      var expiredHtml = '';
+      var remainColor = self.getRemainColor(remain);
+
       if (remain < 0) {
         badgeHtml = '<span class="badge badge-danger">已过期</span>';
+        cardBg = '#FECACA';
+        expiredHtml = '<div class="expired-tag">已过期 ' + Math.abs(remain) + ' 天</div>';
       } else if (remain === 0) {
         badgeHtml = '<span class="badge badge-red">今日到期</span>';
+        cardBg = '#FEE2E2';
+        expiredHtml = '<div class="expired-tag">今日到期</div>';
       } else if (remain <= 1) {
         badgeHtml = '<span class="badge badge-red">剩 ' + remain + ' 天</span>';
+        cardBg = '#FEE2E2';
       } else if (remain <= 3) {
         badgeHtml = '<span class="badge badge-orange">剩 ' + remain + ' 天</span>';
+        cardBg = '#FFEDD5';
       } else if (remain <= 7) {
         badgeHtml = '<span class="badge badge-warning">剩 ' + remain + ' 天</span>';
+        cardBg = '#FEF3C7';
       } else {
         badgeHtml = '<span class="badge badge-info">' + remain + '天</span>';
       }
-      var remainColor = self.getRemainColor(remain);
-      // 整个卡片背景按紧急度变色（淡色，一眼可见）
-      var cardBg = '';
-      if (remain < 0) cardBg = '#FECACA';         // 已过期：明显浅红
-      else if (remain === 0) cardBg = '#FEE2E2';  // 今日到期：淡红
-      else if (remain <= 1) cardBg = '#FEE2E2';   // 剩1天：淡红
-      else if (remain <= 3) cardBg = '#FFEDD5';   // 剩3天：淡橙
-      else if (remain <= 7) cardBg = '#FEF3C7';   // 剩7天：淡黄
-      var expiredHtml = remain < 0 ? '<div class="expired-tag">已过期 ' + Math.abs(remain) + ' 天</div>' :
-                        (remain === 0 ? '<div class="expired-tag">今日到期</div>' : '');
+
+      // 次数类：次数用尽时补一条提示（天数可能还有剩余）
+      if (isCount && remainCount <= 0 && remain >= 0) {
+        expiredHtml += '<div class="expired-tag">次数已用完</div>';
+      }
+
       var coachHtml = s.coach
         ? '<div style="text-align:center;font-size:12px;color:var(--gray-500);margin-top:4px">🏅 教练：' + s.coach + '</div>'
         : '';
       var styleAttr = cardBg ? 'background:' + cardBg + ';' : '';
+      // 大数字：次数类仍显示剩余次数，周期类显示剩余天数
+      var bigNum = isCount ? (remainCount > 0 ? remainCount : 0) : (remain > 0 ? remain : 0);
+      var bigColor = isCount ? self.getRemainColor(remain) : remainColor;
       return '<div class="student-card"' + (styleAttr ? ' style="' + styleAttr + '"' : '') + ' onclick="student.viewDetail(\'' + s.id + '\')">' +
         '<div class="card-header"><span class="name">' + s.name + '</span>' + badgeHtml + '</div>' +
-        '<div class="remain-days" style="color:' + remainColor + '">' + (remain > 0 ? remain : 0) + '</div>' +
-        '<div class="remain-label">剩余课时（天）</div>' + expiredHtml + coachHtml +
+        '<div style="text-align:center;margin-top:2px">' + typeTag + '</div>' +
+        '<div class="remain-days" style="color:' + bigColor + '">' + bigNum + '</div>' +
+        '<div class="remain-label">剩余' + (isCount ? '次数' : '课时') + '（' + unit + '）</div>' + expiredHtml + coachHtml +
         '<div class="card-footer" onclick="event.stopPropagation()">' +
           '<button class="btn btn-outline btn-sm" onclick="student.adjustDays(\'' + s.id + '\', -1)"' + (effectiveDur <= 0 ? ' disabled' : '') + '>−</button>' +
           '<button class="btn btn-primary btn-sm" onclick="student.adjustDays(\'' + s.id + '\', 1)">+</button>' +
@@ -1046,16 +1361,21 @@ var student = {
     var students = DB.students;
     if (students.length === 0) { showToast('没有学生数据可导出', 'warning'); return; }
 
-    // CSV header
+    // CSV header（新增 课程类型 列；含到期时间，便于完整还原）
     var csv = '\uFEFF'; // BOM for Excel UTF-8
-    csv += '姓名,学校,电话,课程开始时间,课程时长,课程内容,教练,是否住宿\n';
+    csv += '课程类型,姓名,学校,电话,课程开始时间,课程时长,到期时间,课程内容,教练,是否住宿\n';
 
     students.forEach(function(s) {
+      // 时长列：次数类导出为次数（用当前剩余量，便于核对）
+      var cur = getCurDuration(s);
+      var endShow = normalizeDateStr(s.endDate) || (s.courseType === '次数' ? '' : calcEndDate(s.startDate, cur)) || '';
+      csv += (s.courseType || '未分类') + ',';
       csv += (s.name || '') + ',';
       csv += (s.school || '') + ',';
       csv += (s.phone || '') + ',';
-      csv += (s.startDate || '') + ',';
-      csv += (getCurDuration(s)) + ',';
+      csv += (normalizeDateStr(s.startDate) || s.startDate || '') + ',';
+      csv += cur + ',';
+      csv += endShow + ',';
       csv += (s.courseContent || '') + ',';
       csv += (s.coach || '') + ',';
       csv += (s.boarding || '否') + '\n';
@@ -1127,9 +1447,10 @@ var student = {
 
   downloadTemplate: function() {
     var csv = '\uFEFF';
-    csv += '姓名,学校,电话,课程开始时间,课程时长,课程内容,教练,是否住宿\n';
-    csv += '张三,第一中学,13800138000,2026-09-01,30,统招,张教练,是\n';
-    csv += '李四,第二中学,13900139000,2026-09-05,45,一对一,李教练,否\n';
+    csv += '课程类型,姓名,学校,电话,课程开始时间,课程时长,到期时间,课程内容,教练,是否住宿\n';
+    csv += '周期,张三,第一中学,13800138000,2026-09-01,30,2026-09-30,统招,张教练,是\n';
+    csv += '次数,李四,第二中学,13900139000,2026-09-05,10,2026-12-31,一对一,李教练,否\n';
+    csv += '周期,王五,第三中学,13700137000,2026-09-10,45,2026-10-24,小班课,王教练,否\n';
 
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');
@@ -1154,41 +1475,76 @@ var student = {
 
       // Parse header
       var header = lines[0].replace(/^\uFEFF/, '').split(',');
-      if (header.length < 4) { showToast('表头格式不正确，请参考：姓名,学校,电话,课程开始时间,课程时长,课程内容,教练,是否住宿', 'error'); return; }
+      header = header.map(function(h) { return (h || '').trim(); });
 
-      // 判断是否包含教练列（新格式8列：…课程内容,教练,是否住宿；旧格式7列：…课程内容,是否住宿）
-      var hasCoachColumn = header.length >= 8;
+      // 严格按表头名定位列索引；找不到返回 -1（表示该列不存在）。
+      // 这样无论新旧模板多少列、顺序如何，都能正确解析，避免“错列当教练/住宿”的问题。
+      function colIdx(names) {
+        for (var k = 0; k < names.length; k++) {
+          var ix = header.indexOf(names[k]);
+          if (ix >= 0) return ix;
+        }
+        return -1;
+      }
+      var iType = colIdx(['课程类型','类型']);
+      var iName = colIdx(['姓名','学生姓名']);
+      var iSchool = colIdx(['学校']);
+      var iPhone = colIdx(['电话','手机']);
+      var iStart = colIdx(['课程开始时间','开始时间']);
+      var iDur = colIdx(['课程时长','课程次数','课时','时长','次数']);
+      var iEnd = colIdx(['到期时间','结束时间']);
+      var iContent = colIdx(['课程内容','内容']);
+      var iCoach = colIdx(['教练']);
+      var iBoarding = colIdx(['是否住宿','住宿']);
+
+      // 极端兜底：若表头完全无法识别（如无中文表头），按“是否有课程类型列”回退经典布局
+      if (iName < 0 || iStart < 0 || iDur < 0) {
+        var hasType = (header[0] === '课程类型' || header[0] === '类型');
+        var off = hasType ? 1 : 0;
+        if (iType < 0 && hasType) iType = 0;
+        if (iName < 0) iName = off;
+        if (iSchool < 0) iSchool = off + 1;
+        if (iPhone < 0) iPhone = off + 2;
+        if (iStart < 0) iStart = off + 3;
+        if (iDur < 0) iDur = off + 4;
+        if (iContent < 0) iContent = header.length >= 10 ? off + 7 : off + 5;
+        // 教练/住宿：仅当表头确实存在对应列时才赋值（避免把住宿列误当教练）
+        if (iBoarding < 0 && header.indexOf('是否住宿') < 0 && header.indexOf('住宿') < 0) {
+          iBoarding = header.length - 1;
+        }
+      }
 
       var students = DB.students;
       var added = 0;
       var updated = 0;
 
       for (var i = 1; i < lines.length; i++) {
-        var cols = lines[i].split(',');
+        var cols = lines[i].split(',').map(function(c) { return (c || '').trim(); });
         if (cols.length < 4) continue;
-        var name = cols[0].trim();
+
+        var name = cols[iName] || '';
         if (!name) continue;
-        var startDate = (cols[3] || '').trim();
-        var duration = parseInt(cols[4]) || 0;
+
+        // 课程类型：仅当列存在且值为 周期/次数 时才采用，否则标记未分类（导入后可在编辑里补）
+        var courseType = iType >= 0 ? (cols[iType] || '').trim() : '';
+        if (courseType !== '周期' && courseType !== '次数') courseType = '';
+
+        var startDate = normalizeDateStr(cols[iStart]) || '';
+        var duration = parseInt(cols[iDur]) || 0;
         if (!startDate || duration < 1) continue;
 
-        var school = (cols[1] || '').trim();
-        var phone = (cols[2] || '').trim();
-        var courseContent = (cols[5] || '').trim() || '统招';
-        var coach = '';
-        var boarding = '否';
-        if (hasCoachColumn) {
-          coach = (cols[6] || '').trim();
-          boarding = (cols[7] || '').trim() || '否';
-        } else {
-          // 旧格式：第7列是是否住宿
-          boarding = (cols[6] || '').trim() || '否';
-        }
-        // 兼容：若住宿列值不是"是/否"，视为教练列（处理更早版本数据）
-        if (boarding !== '是' && boarding !== '否' && !hasCoachColumn) {
+        var school = iSchool >= 0 ? (cols[iSchool] || '') : '';
+        var phone = iPhone >= 0 ? (cols[iPhone] || '') : '';
+        var courseContent = (iContent >= 0 ? cols[iContent] : '') || '统招';
+        var coach = iCoach >= 0 ? (cols[iCoach] || '') : '';
+        var boarding = (iBoarding >= 0 ? cols[iBoarding] : '') || '否';
+        // 兼容：住宿列若填的不是“是/否”，视为教练（仅当没有独立教练列时）
+        if (boarding !== '是' && boarding !== '否' && !coach) {
           coach = boarding;
           boarding = '否';
         }
+        // 到期时间：次数类以导入值为准；周期类忽略（按开始+时长重算）
+        var importedEnd = iEnd >= 0 ? (normalizeDateStr(cols[iEnd]) || '') : '';
 
         // Check if exists (by name + phone as unique key)
         var existing = students.findIndex(function(s) {
@@ -1198,6 +1554,7 @@ var student = {
         if (existing >= 0) {
           // Update
           students[existing] = Object.assign({}, students[existing], {
+            courseType: courseType || students[existing].courseType || '',
             school: school,
             startDate: startDate,
             duration: duration,
@@ -1206,8 +1563,9 @@ var student = {
             boarding: boarding,
             adjustedDuration: duration
           });
-          students[existing].endDate = calcEndDate(startDate, duration) ||
-            (new Date(startDate).getFullYear() + '-' + String(new Date(startDate).getMonth() + 1).padStart(2,'0') + '-' + String(new Date(startDate).getDate()).padStart(2,'0'));
+          students[existing].endDate = (courseType === '次数' && importedEnd)
+            ? importedEnd
+            : (calcEndDate(startDate, duration) || students[existing].endDate || '');
           updated++;
         } else {
           students.push({
@@ -1215,9 +1573,10 @@ var student = {
             name: name,
             school: school,
             phone: phone,
+            courseType: courseType,
             startDate: startDate,
             duration: duration,
-            endDate: calcEndDate(startDate, duration),
+            endDate: (courseType === '次数' && importedEnd) ? importedEnd : calcEndDate(startDate, duration),
             courseContent: courseContent,
             coach: coach,
             boarding: boarding,
@@ -1265,15 +1624,22 @@ document.getElementById('newCustomOption').addEventListener('keydown', function(
 var batch = {
   selected: new Set(),
 
-  // 获取当前搜索过滤后的可见学生
+  // 获取当前搜索 + 类型筛选后的可见学生
   getVisibleStudents: function() {
     var searchVal = (document.getElementById('batchSearch').value || '').trim().toLowerCase();
+    var typeEl = document.getElementById('batchTypeFilter');
+    var typeVal = typeEl ? (typeEl.value || '') : '';
     var students = DB.students;
     if (searchVal) {
       students = students.filter(function(s) {
         return (s.name || '').toLowerCase().indexOf(searchVal) !== -1 ||
                (s.school || '').toLowerCase().indexOf(searchVal) !== -1 ||
                (s.coach || '').toLowerCase().indexOf(searchVal) !== -1;
+      });
+    }
+    if (typeVal) {
+      students = students.filter(function(s) {
+        return (s.courseType || '未分类') === typeVal;
       });
     }
     return students;
@@ -1298,21 +1664,32 @@ var batch = {
     }
 
     var self = this;
-    var html = '<table class="batch-table"><thead><tr><th style="width:40px"></th><th>姓名</th><th>学校</th><th>教练</th><th>开始时间</th><th>当前课时</th><th>状态</th></tr></thead><tbody>';
+    var html = '<table class="batch-table"><thead><tr><th style="width:40px"></th><th>姓名</th><th>课程类型</th><th>学校</th><th>教练</th><th>开始时间</th><th>当前课时</th><th>状态</th></tr></thead><tbody>';
 
     students.forEach(function(s) {
       var remain = student.getRemainingDays(s);
+      var isCount = (s.courseType === '次数');
+      var unit = isCount ? '次' : '天';
       var checked = self.selected.has(s.id) ? 'checked' : '';
-      var status = remain < 0
-        ? '<span class="status-tag" style="background:#FEE2E2;color:#991B1B">已过期</span>'
-        : (remain === 0
-          ? '<span class="status-tag" style="background:#FEE2E2;color:#991B1B">今日到期</span>'
-          : (remain <= 5
-            ? '<span class="status-tag" style="background:#FEF3C7;color:#92400E">即将到期</span>'
-            : '<span class="status-tag" style="background:#FFEAE8;color:#E5332E">正常</span>'));
+      var typeTag = '<span class="type-tag ' + (!s.courseType ? 'type-uncat' : (isCount ? 'type-count' : 'type-period')) + '">' +
+                    student.getTypeText(s) + '</span>';
+      // 状态：周期类与次数类统一按剩余天数判断到期紧急度（次数类额外提示是否用尽）
+      var remainCount = getCurDuration(s);
+      var status;
+      if (isCount && remainCount <= 0) {
+        status = '<span class="status-tag" style="background:#FEE2E2;color:#991B1B">次数已用尽</span>';
+      } else if (remain < 0) {
+        status = '<span class="status-tag" style="background:#FEE2E2;color:#991B1B">已过期</span>';
+      } else if (remain === 0) {
+        status = '<span class="status-tag" style="background:#FEE2E2;color:#991B1B">今日到期</span>';
+      } else if (remain <= 3) {
+        status = '<span class="status-tag" style="background:#FEF3C7;color:#92400E">即将到期</span>';
+      } else {
+        status = '<span class="status-tag" style="background:#FFEAE8;color:#E5332E">正常</span>';
+      }
       html += '<tr><td><input type="checkbox" ' + checked + ' value="' + s.id + '" onchange="batch.toggle(\'' + s.id + '\')"></td>' +
-        '<td><strong>' + s.name + '</strong></td><td>' + (s.school || '-') + '</td>' +
-        '<td>' + (s.coach || '-') + '</td><td>' + (normalizeDateStr(s.startDate) || s.startDate) + '</td><td>' + getCurDuration(s) + ' 天</td><td>' + status + '</td></tr>';
+        '<td><strong>' + s.name + '</strong></td><td>' + typeTag + '</td><td>' + (s.school || '-') + '</td>' +
+        '<td>' + (s.coach || '-') + '</td><td>' + (normalizeDateStr(s.startDate) || s.startDate) + '</td><td>' + getCurDuration(s) + ' ' + unit + '</td><td>' + status + '</td></tr>';
     });
 
     html += '</tbody></table>';
@@ -1351,11 +1728,12 @@ var batch = {
 
     var students = DB.students.filter(function(s) { return this.selected.has(s.id); }.bind(this));
     document.getElementById('confirmBody').innerHTML =
-      '<p style="margin-bottom:8px">将统一增加 <strong>' + count + '</strong> 课时，共影响 <strong>' + students.length + '</strong> 名学生：</p>' +
+      '<p style="margin-bottom:8px">将统一增加 <strong>' + count + '</strong>，共影响 <strong>' + students.length + '</strong> 名学生：</p>' +
       '<div class="confirm-list">' +
       students.map(function(s) {
         var cur = getCurDuration(s);
-        return '<div class="item">• ' + s.name + '（当前：' + cur + ' 天 → ' + (cur + count) + ' 天）</div>';
+        var u = (s.courseType === '次数') ? '次' : '天';
+        return '<div class="item">• ' + s.name + '（当前：' + cur + ' ' + u + ' → ' + (cur + count) + ' ' + u + '）</div>';
       }).join('') + '</div>';
 
     document.getElementById('confirmTitle').textContent = '确认批量加课';
@@ -1370,7 +1748,10 @@ var batch = {
         var current = getCurDuration(s);
         var newDur = current + count;
         s.adjustedDuration = newDur;
-        s.endDate = calcEndDate(s.startDate, newDur) || s.endDate;
+        // 次数类：到期时间由使用者维护，不随加减课变化
+        if (s.courseType !== '次数') {
+          s.endDate = calcEndDate(s.startDate, newDur) || s.endDate;
+        }
       }
     }.bind(this));
     DB.students = students;
@@ -1380,7 +1761,7 @@ var batch = {
     document.getElementById('confirmModal').classList.remove('show');
     this.render();
     student.renderList();
-    showToast('批量加课完成，共增加 ' + count + ' 课时');
+    showToast('批量加课完成，共增加 ' + count);
   },
 
   // ---------- 批量消课 ----------
@@ -1391,11 +1772,12 @@ var batch = {
 
     var students = DB.students.filter(function(s) { return this.selected.has(s.id); }.bind(this));
     document.getElementById('confirmBody').innerHTML =
-      '<p style="margin-bottom:8px">将统一扣除 <strong>' + count + '</strong> 课时，共影响 <strong>' + students.length + '</strong> 名学生：</p>' +
+      '<p style="margin-bottom:8px">将统一扣除 <strong>' + count + '</strong>，共影响 <strong>' + students.length + '</strong> 名学生：</p>' +
       '<div class="confirm-list">' +
       students.map(function(s) {
         var cur = getCurDuration(s);
-        return '<div class="item">• ' + s.name + '（当前：' + cur + ' 天 → ' + Math.max(0, cur - count) + ' 天）</div>';
+        var u = (s.courseType === '次数') ? '次' : '天';
+        return '<div class="item">• ' + s.name + '（当前：' + cur + ' ' + u + ' → ' + Math.max(0, cur - count) + ' ' + u + '）</div>';
       }).join('') + '</div>';
 
     document.getElementById('confirmTitle').textContent = '确认批量消课';
@@ -1410,7 +1792,10 @@ var batch = {
         var current = getCurDuration(s);
         var newDur = Math.max(0, current - count);
         s.adjustedDuration = newDur;
-        s.endDate = calcEndDate(s.startDate, newDur) || s.endDate;
+        // 次数类：到期时间由使用者维护，不随加减课变化
+        if (s.courseType !== '次数') {
+          s.endDate = calcEndDate(s.startDate, newDur) || s.endDate;
+        }
       }
     }.bind(this));
     DB.students = students;
@@ -1420,7 +1805,7 @@ var batch = {
     document.getElementById('confirmModal').classList.remove('show');
     this.render();
     student.renderList();
-    showToast('批量消课完成，共扣除 ' + count + ' 课时');
+    showToast('批量消课完成，共扣除 ' + count);
   },
 
   closeConfirm: function() {
@@ -1431,6 +1816,396 @@ var batch = {
 // Wire up batch search input
 document.getElementById('batchSearch').addEventListener('input', function() {
   batch.render();
+});
+
+// ============================================================
+// MODULE 4: 次数详情（日历 + 学生）
+// ============================================================
+var countModule = {
+  view: 'calendar',          // 'calendar' | 'students'
+  calYear: 0,
+  calMonth: 0,               // 0-11
+  selectedDate: '',          // 'YYYY-MM-DD'
+  logEditKey: '',            // 当前编辑记录所属日期
+  logEditId: '',             // 当前编辑记录 id
+  studentLogsId: '',         // 学生记录弹窗 当前学生 id
+
+  // ---------- 通用：日期格式化 ----------
+  _fmt: function(y, m, d) {
+    return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+  },
+  _todayStr: function() {
+    var t = new Date();
+    return this._fmt(t.getFullYear(), t.getMonth(), t.getDate());
+  },
+
+  // 次数类型学生列表
+  _countStudents: function() {
+    return DB.students.filter(function(s) { return s.courseType === '次数'; });
+  },
+
+  // 取某天记录
+  _logsOf: function(dateStr) {
+    var logs = DB.classLogs;
+    return logs[dateStr] || [];
+  },
+
+  // 写入某天记录
+  _setLogs: function(dateStr, arr) {
+    var logs = DB.classLogs;
+    if (arr && arr.length) logs[dateStr] = arr;
+    else delete logs[dateStr];
+    DB.classLogs = logs;
+  },
+
+  // 调整某学生次数（delta 可正可负），下限 0
+  _adjustStudentCount: function(studentId, delta) {
+    var students = DB.students;
+    var s = students.find(function(x) { return x.id === studentId; });
+    if (!s) return false;
+    var cur = getCurDuration(s);
+    var next = cur + delta;
+    if (next < 0) next = 0;
+    s.adjustedDuration = next;
+    DB.students = students;
+    return true;
+  },
+
+  render: function() {
+    if (this.calYear === 0) {
+      var now = new Date();
+      this.calYear = now.getFullYear();
+      this.calMonth = now.getMonth();
+      this.selectedDate = this._todayStr();
+    }
+    if (this.view === 'calendar') this.renderCalendar();
+    else this.renderStudents();
+  },
+
+  switchView: function(v) {
+    this.view = v;
+    document.querySelectorAll('.count-tab').forEach(function(el) {
+      el.classList.toggle('active', el.dataset.view === v);
+    });
+    document.getElementById('countCalendarView').style.display = (v === 'calendar') ? '' : 'none';
+    document.getElementById('countStudentsView').style.display = (v === 'students') ? '' : 'none';
+    if (v === 'calendar') this.renderCalendar(); else this.renderStudents();
+  },
+
+  // ---------- 日历 ----------
+  prevMonth: function() {
+    this.calMonth--;
+    if (this.calMonth < 0) { this.calMonth = 11; this.calYear--; }
+    this.renderCalendar();
+  },
+  nextMonth: function() {
+    this.calMonth++;
+    if (this.calMonth > 11) { this.calMonth = 0; this.calYear++; }
+    this.renderCalendar();
+  },
+  today: function() {
+    var n = new Date();
+    this.calYear = n.getFullYear();
+    this.calMonth = n.getMonth();
+    this.selectedDate = this._todayStr();
+    this.renderCalendar();
+  },
+
+  renderCalendar: function() {
+    var y = this.calYear, m = this.calMonth;
+    document.getElementById('calMonthLabel').textContent = y + '年' + (m + 1) + '月';
+
+    var firstDay = new Date(y, m, 1).getDay();        // 当月1号是周几
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    var prevDays = new Date(y, m, 0).getDate();
+
+    var logs = DB.classLogs;
+    var todayStr = this._todayStr();
+    var self = this;
+    var cells = [];
+
+    // 上月的补齐格子
+    for (var i = firstDay - 1; i >= 0; i--) {
+      var d = prevDays - i;
+      var pm = m - 1, py = y;
+      if (pm < 0) { pm = 11; py--; }
+      cells.push({ day: d, date: this._fmt(py, pm, d), other: true });
+    }
+    // 本月
+    for (var d2 = 1; d2 <= daysInMonth; d2++) {
+      cells.push({ day: d2, date: this._fmt(y, m, d2), other: false });
+    }
+    // 下月补齐到整周
+    var rest = (7 - (cells.length % 7)) % 7;
+    for (var k = 1; k <= rest; k++) {
+      var nm = m + 1, ny = y;
+      if (nm > 11) { nm = 0; ny++; }
+      cells.push({ day: k, date: this._fmt(ny, nm, k), other: true });
+    }
+
+    var html = cells.map(function(c) {
+      var cnt = (logs[c.date] || []).length;
+      var cls = 'cal-cell' + (c.other ? ' other-month' : '') +
+                (c.date === self.selectedDate ? ' selected' : '') +
+                (c.date === todayStr ? ' today' : '');
+      var cntHtml = cnt > 0 ? '<span class="cal-count">' + cnt + '人</span>' : '';
+      return '<div class="' + cls + '" onclick="countModule.selectDate(\'' + c.date + '\')">' +
+             '<span class="cal-daynum">' + c.day + '</span>' + cntHtml + '</div>';
+    }).join('');
+    document.getElementById('calGrid').innerHTML = html;
+
+    this.renderDayPanel();
+  },
+
+  selectDate: function(dateStr) {
+    this.selectedDate = dateStr;
+    this.renderCalendar();
+  },
+
+  renderDayPanel: function() {
+    var dateStr = this.selectedDate;
+    document.getElementById('calDayTitle').textContent = dateStr ? (dateStr + ' 上课学生') : '请选择日期';
+    var list = document.getElementById('calDayList');
+    if (!dateStr) { list.innerHTML = '<div class="add-student-empty">请先选择日期</div>'; return; }
+    var logs = this._logsOf(dateStr);
+    if (!logs.length) {
+      list.innerHTML = '<div class="add-student-empty">当天暂无上课记录，点右下角 ＋ 添加</div>';
+      return;
+    }
+    var html = logs.map(function(l) {
+      // 学生是否还存在
+      var exists = DB.students.some(function(s) { return s.id === l.studentId; });
+      var contentHtml = l.content ? '<span class="content-small">' + escapeHtml(l.content) + '</span>' : '';
+      return '<div class="cal-day-item' + (exists ? '' : ' deleted-stu') + '" onclick="countModule.openLogDetail(\'' + dateStr + '\',\'' + l.id + '\')">' +
+        '<span class="nm">' + escapeHtml(l.name) + (exists ? '' : '（已删除）') + contentHtml + '</span>' +
+        '<span class="deduct">扣除课时：' + l.deduct + '</span>' +
+      '</div>';
+    }).join('');
+    list.innerHTML = html;
+  },
+
+  // ---------- 添加学生 ----------
+  openAddStudents: function() {
+    if (!this.selectedDate) { showToast('请先在日历上选择一天', 'warning'); return; }
+    document.getElementById('addStudentsDateHint').textContent = '上课日期：' + this.selectedDate;
+    document.getElementById('addStudentSearch').value = '';
+    this._renderAddStudentList('');
+    document.getElementById('addStudentsModal').classList.add('show');
+  },
+
+  closeAddStudents: function() {
+    document.getElementById('addStudentsModal').classList.remove('show');
+  },
+
+  _renderAddStudentList: function(kw) {
+    kw = (kw || '').trim().toLowerCase();
+    var students = this._countStudents();
+    if (kw) students = students.filter(function(s) { return (s.name || '').toLowerCase().indexOf(kw) !== -1; });
+    var box = document.getElementById('addStudentList');
+    if (!students.length) {
+      box.innerHTML = '<div class="add-student-empty">' +
+        (this._countStudents().length ? '未找到匹配学生' : '暂无“次数”类型的学生，请先在档案管理中添加') + '</div>';
+      return;
+    }
+    box.innerHTML = students.map(function(s) {
+      var cur = getCurDuration(s);
+      return '<label class="add-student-item">' +
+        '<input type="checkbox" value="' + s.id + '">' +
+        '<span>' + escapeHtml(s.name) + '</span>' +
+        '<span class="remain">剩余 ' + cur + ' 次</span>' +
+      '</label>';
+    }).join('');
+  },
+
+  saveAddedStudents: function() {
+    var checked = Array.prototype.slice.call(
+      document.querySelectorAll('#addStudentList input[type=checkbox]:checked')
+    ).map(function(el) { return el.value; });
+    if (!checked.length) { showToast('请至少选择一名学生', 'error'); return; }
+
+    var dateStr = this.selectedDate;
+    var logs = this._logsOf(dateStr).slice();
+    var students = DB.students;
+    var added = 0;
+    checked.forEach(function(id) {
+      var s = students.find(function(x) { return x.id === id; });
+      if (!s) return;
+      // 写记录（姓名快照，允许同日重复）
+      logs.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        studentId: id,
+        name: s.name,
+        deduct: 1,
+        content: '',
+        createdAt: new Date().toISOString()
+      });
+      // 扣 1 次
+      countModule._adjustStudentCount(id, -1);
+      added++;
+    });
+    this._setLogs(dateStr, logs);
+    this.closeAddStudents();
+    this.renderCalendar();
+    student.renderList();
+    batch.render();
+    showToast('已添加 ' + added + ' 名学生，各扣 1 节');
+  },
+
+  // ---------- 记录详情 ----------
+  openLogDetail: function(dateStr, logId) {
+    var logs = this._logsOf(dateStr);
+    var l = logs.find(function(x) { return x.id === logId; });
+    if (!l) return;
+    this.logEditKey = dateStr;
+    this.logEditId = logId;
+    document.getElementById('log_name').value = l.name;
+    document.getElementById('log_date').value = dateStr;
+    document.getElementById('log_deduct').value = l.deduct;
+    document.getElementById('log_content').value = l.content || '';
+    document.getElementById('logDetailModal').classList.add('show');
+  },
+
+  closeLogDetail: function() {
+    document.getElementById('logDetailModal').classList.remove('show');
+    this.logEditKey = '';
+    this.logEditId = '';
+  },
+
+  saveLogDetail: function() {
+    var dateStr = this.logEditKey, logId = this.logEditId;
+    if (!dateStr || !logId) return;
+    var newDeduct = parseInt(document.getElementById('log_deduct').value);
+    if (isNaN(newDeduct) || newDeduct < 0) { showToast('扣除课时请填 0 或正整数', 'error'); return; }
+    var newContent = document.getElementById('log_content').value.trim();
+
+    var logs = this._logsOf(dateStr).slice();
+    var idx = logs.findIndex(function(x) { return x.id === logId; });
+    if (idx < 0) { this.closeLogDetail(); return; }
+    var oldDeduct = logs[idx].deduct;
+    var studentId = logs[idx].studentId;
+
+    // 按差值联动档案次数：扣课增多 => 剩余减少
+    var diff = oldDeduct - newDeduct;   // 若从1改到2，diff=-1，代表多扣1次
+    if (diff !== 0) this._adjustStudentCount(studentId, diff);
+
+    logs[idx].deduct = newDeduct;
+    logs[idx].content = newContent;
+    this._setLogs(dateStr, logs);
+    this.closeLogDetail();
+    this.renderCalendar();
+    student.renderList();
+    batch.render();
+    showToast('已保存');
+  },
+
+  deleteLog: function() {
+    var dateStr = this.logEditKey, logId = this.logEditId;
+    if (!dateStr || !logId) return;
+    var logs = this._logsOf(dateStr).slice();
+    var idx = logs.findIndex(function(x) { return x.id === logId; });
+    if (idx < 0) { this.closeLogDetail(); return; }
+    var l = logs[idx];
+    // 退还课时
+    this._adjustStudentCount(l.studentId, l.deduct);
+    logs.splice(idx, 1);
+    this._setLogs(dateStr, logs);
+    this.closeLogDetail();
+    this.renderCalendar();
+    student.renderList();
+    batch.render();
+    showToast('已删除记录并退还 ' + l.deduct + ' 课时');
+  },
+
+  // ---------- 学生视图 ----------
+  renderStudents: function() {
+    var kw = (document.getElementById('countStudentSearch').value || '').trim().toLowerCase();
+    var students = this._countStudents();
+    if (kw) students = students.filter(function(s) { return (s.name || '').toLowerCase().indexOf(kw) !== -1; });
+    var grid = document.getElementById('countStudentGrid');
+    var empty = document.getElementById('countStudentEmpty');
+    if (!students.length) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      empty.textContent = this._countStudents().length ? '未找到匹配学生' : '暂无次数类型的学生';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.innerHTML = students.map(function(s) {
+      return '<div class="count-student-card" onclick="countModule.openStudentLogs(\'' + s.id + '\')">' +
+        '<div class="nm">' + escapeHtml(s.name) + '</div>' +
+      '</div>';
+    }).join('');
+  },
+
+  // 某学生的全部消课记录（跨日期）
+  _logsOfStudent: function(studentId) {
+    var logs = DB.classLogs;
+    var out = [];
+    Object.keys(logs).forEach(function(d) {
+      (logs[d] || []).forEach(function(l) {
+        if (l.studentId === studentId) out.push(Object.assign({ date: d }, l));
+      });
+    });
+    out.sort(function(a, b) { return a.date < b.date ? 1 : (a.date > b.date ? -1 : 0); }); // 新→旧
+    return out;
+  },
+
+  openStudentLogs: function(studentId) {
+    this.studentLogsId = studentId;
+    var s = DB.students.find(function(x) { return x.id === studentId; });
+    var name = s ? s.name : '（已删除学生）';
+    document.getElementById('studentLogsTitle').textContent = name + ' 的消课记录';
+    var cur = s ? getCurDuration(s) : null;
+    document.getElementById('studentLogsSummary').textContent =
+      cur !== null ? ('当前剩余次数：' + cur + ' 次') : '该学生已从档案中删除，仅保留历史记录';
+    this._renderStudentLogsList(studentId);
+    document.getElementById('studentLogsModal').classList.add('show');
+  },
+
+  closeStudentLogs: function() {
+    document.getElementById('studentLogsModal').classList.remove('show');
+    this.studentLogsId = '';
+  },
+
+  _renderStudentLogsList: function(studentId) {
+    var list = this._logsOfStudent(studentId);
+    var box = document.getElementById('studentLogsList');
+    if (!list.length) {
+      box.innerHTML = '<div class="add-student-empty">暂无消课记录</div>';
+      return;
+    }
+    box.innerHTML = list.map(function(l) {
+      return '<div class="student-log-item">' +
+        '<div class="info"><div class="date">' + l.date + '</div>' +
+        '<div class="content">' + (l.content ? escapeHtml(l.content) : '（无上课内容）') + '</div></div>' +
+        '<div style="display:flex;align-items:center">' +
+          '<span class="deduct">扣除 ' + l.deduct + ' 节</span>' +
+          '<button class="btn btn-outline btn-sm" onclick="countModule.editLogFromStudent(\'' + l.date + '\',\'' + l.id + '\')">编辑</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  },
+
+  editLogFromStudent: function(dateStr, logId) {
+    // 复用记录详情弹窗；关闭学生弹窗避免叠加
+    document.getElementById('studentLogsModal').classList.remove('show');
+    this.openLogDetail(dateStr, logId);
+  }
+};
+
+function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// 添加学生弹窗内搜索
+document.getElementById('addStudentSearch').addEventListener('input', function() {
+  countModule._renderAddStudentList(this.value);
+});
+// 学生视图搜索
+document.getElementById('countStudentSearch').addEventListener('input', function() {
+  countModule.renderStudents();
 });
 
 // ============================================================
